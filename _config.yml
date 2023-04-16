@@ -192,6 +192,7 @@ exclude:
   - gulpfile.js
   - node_modules
   - package*.json
+  - assets
 
 jekyll-archives:
   enabled: [categories, tags]
