@@ -48,7 +48,7 @@ ssh -D 9050 root@{target-ip}
 **Reference to this diagram + in depth guide on Local and Remote Port forwarding with diagrams**:
 - https://pswalia2u.medium.com/ssh-tunneling-port-forwarding-pivoting-socks-proxy-85fb7129912d
 
-3. Doing a GET request using curl:
+##### 1. Doing a GET request using curl:
 
 ```bash
 proxychains curl http://{target-ip}
@@ -58,13 +58,13 @@ proxychains curl http://{target-ip}
 
 	- Seems like Clipper is the software that is used again. We can use the same exploit as the one from "Pivoting IV" lab.
 
-4. Applying the ClipperCMS exploit from "Pivoting IV" lab:
+##### 2. Applying the ClipperCMS exploit from "Pivoting IV" lab:
 
 ![](/assets/img/1622.png)
 
 	- Notice that I also used the same credentials for this software again as the one from "Pivoting IV" lab but in real pentest with the same software exploit, you may want to bruteforce it.
 
-5. Getting the flag:
+##### 3. Getting the flag:
 
 ```bash
 find / -name *flag*
