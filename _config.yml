@@ -19,9 +19,9 @@ timezone:
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: mooolight's blog                          # the main title
+title: Cybersecurity Blog                          # the main title
 
-tagline: Pentesting, Red Teaming, Malware & Windows security research   # it will display as the sub-title
+tagline: Pentesting, Red Teaming, Malware & Windows Security Research   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   A blog about pentesting, red teaming and malware with a focus on Windows security research.
