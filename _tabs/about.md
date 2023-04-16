@@ -4,4 +4,4 @@ icon: fas fa-info-circle
 order: 4
 ---
 
-I'm just a random offensive security consultant. With this blog, I want to share a part of the Research & Development work I do on my spare time. I've learnt a lot from the infosec community so my objective is to give back what I can in a very humble way.
+I'm just a random cybersecurity noob. With this blog, I want to share how I recreate publicly accessible papers and technical blogs about Pentesting, Red Teaming and Malware. With this blog, I hope I can help other people in case they come across the same problems that I did.
