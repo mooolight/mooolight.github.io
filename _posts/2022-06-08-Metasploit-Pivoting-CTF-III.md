@@ -6,23 +6,23 @@ tags: [Pentester Academy,Metasploit]
 ---
 
 # Steps Taken:
-1. Scan with NMAP the first target machine:
+##### 1. Scan with NMAP the first target machine:
 
 ![](/assets/img/1786.png)
 
 	- Port 21 = ftp is open!
 
-2. Preparing Metasploit:
+##### 2. Preparing Metasploit:
 
 ![](/assets/img/1787.png)
 
-3. Searching for exploit and executing it:
+##### 3. Searching for exploit and executing it:
 
 ![](/assets/img/1788.png)
 
 	- This isn't vulnerable to this exploit!
 
-4. Check out if anonymous users are allowed using Metasploit module:
+##### 4. Check out if anonymous users are allowed using Metasploit module:
 
 		msf > search anonymous
 
@@ -32,27 +32,27 @@ tags: [Pentester Academy,Metasploit]
 
 		- Shows that anon login works but you can only read files on the FTP server!
 
-5. Now, log into the FTP server:
+##### 5. Now, log into the FTP server:
 
 		# ftp {ip}
 
 ![](/assets/img/1791.png)
 
-6. Explore the File system of the FTP server + download any hint you could find:
+##### 6. Explore the File system of the FTP server + download any hint you could find:
 
 ![](/assets/img/1792.png)
 
 
 	- It tells us to login using 'administrator' account.
 
-7. Logging into 'administrator' account WITHOUT password:
+##### 7. Logging into 'administrator' account WITHOUT password:
 
 ![](/assets/img/1793.png)
 
 		- The log in failed. Try to brute force the password for this user then!
 		- Note that from previous experience, we can't use Hydra to brute force the password of an unknown user whether a user actually exists in the FTP server but in this case, we can actually bruteforce a password of a known user. This means that knowing usernames that exist in the servers helps us acquire their password indirectly.
 
-8. Bruteforcing the password of the user 'administrator':
+##### 8. Bruteforcing the password of the user 'administrator':
 
 ![](/assets/img/1794.png)
 
@@ -60,7 +60,7 @@ tags: [Pentester Academy,Metasploit]
 	- Trying PASS_FILE = /usr/share/wordlists/metasploit/password.lst : doesn't work!
 	- Trying PASS_FILE = /usr/share/metasploit-framework/data/wordlists/unix_passwords.txt : 
 
-9. Logging into the FTP webserver using the 'administrator' account:
+##### 9. Logging into the FTP webserver using the 'administrator' account:
 
 ![](/assets/img/1795.png)
 
@@ -73,7 +73,7 @@ tags: [Pentester Academy,Metasploit]
 	# wget -r ftp://administrator:babygirl@192.27.155.3/
 	-> This is wrong since we won't need to download this directory.
 
-10. Putting a file named 'startsuper' at /files directory in the administrator account.
+##### 10. Putting a file named 'startsuper' at /files directory in the administrator account.
 
 		# touch startsuper
 		...(after logging in../in another terminal)
@@ -85,7 +85,7 @@ tags: [Pentester Academy,Metasploit]
 
 ![](/assets/img/1797.png)
 
-11. Now, you have to wait for the "Supervisor" to run in the FTP server! Then, scan the target FTP machine with NMAP:
+##### 11. Now, you have to wait for the "Supervisor" to run in the FTP server! Then, scan the target FTP machine with NMAP:
 
 		# nmap -sS -sV {target}
 
@@ -93,7 +93,7 @@ tags: [Pentester Academy,Metasploit]
 
 	- Now, new port opened serving a new service which in this case is Supervisor process manager.
 
-12. Using 'curl' to do GET request on the new service:
+##### 12. Using 'curl' to do GET request on the new service:
 
 		# curl -v http://{target-ip}:9001
 
@@ -101,24 +101,24 @@ tags: [Pentester Academy,Metasploit]
 
 	- Notice that at the moment, there are no programs this service is managing.
 
-13. Finding exploits this service is vulnerable in:
+##### 13. Finding exploits this service is vulnerable in:
 
 ![](/assets/img/1800.png)
 
 	- This exploit affects Supervisor(Medusa) with versions 3.0a1 to 3.3.2.
 
 
-14. Using exploit/linux/http/supervisor_xmlrpc_exec:
+##### 14. Using exploit/linux/http/supervisor_xmlrpc_exec:
 
 ![](/assets/img/1801.png)
 
 	- The exploit works!
 
-15. Checking the internal subnet this compromised machine might be connected to as well:
+##### 15. Checking the internal subnet this compromised machine might be connected to as well:
 
 ![](/assets/img/1802.png)
 
-16. Creating a pivot using this compromised machine:
+##### 16. Creating a pivot using this compromised machine:
 
 		msf > search autoroute
 		-> Setup autoroute
@@ -126,7 +126,7 @@ tags: [Pentester Academy,Metasploit]
 
 ![](/assets/img/1803.png)
 
-17. Portscan the internal subnet using portscan/tcp Metasploit module:
+##### 17. Portscan the internal subnet using portscan/tcp Metasploit module:
 
 		msf > search portscan/tcp
 		...
@@ -134,7 +134,7 @@ tags: [Pentester Academy,Metasploit]
 
 ![](/assets/img/1804.png)
 
-18. Do an NMAP scan on this internal network machine(2nd target).
+##### 18. Do an NMAP scan on this internal network machine(2nd target).
 
 		- Use 'portfwd' in Meterpreter to do port forwarding to be able to use nmap locally so you won't have to use proxychains.
 
@@ -150,7 +150,7 @@ tags: [Pentester Academy,Metasploit]
 ![](/assets/img/1807.png)
 
 
-19. Check an exploit for this ProFTPD version.
+##### 19. Check an exploit for this ProFTPD version.
 
 		msf > search proftpd
 		...
@@ -159,10 +159,10 @@ tags: [Pentester Academy,Metasploit]
 
 ![](/assets/img/1809.png)
 
-20. Executing the exploit:
+##### 20. Executing the exploit:
 ![](/assets/img/1810.png)
 
-21. Find the flag and print it!
+##### 21. Find the flag and print it!
 
 		# find / -iname *flag*
 
