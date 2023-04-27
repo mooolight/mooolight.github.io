@@ -175,20 +175,26 @@ c:\Windows\System32> wscript /e:VBScript c:\Users\thm\Desktop\payload.txt
 
 <u>Output</u>:
 
+
 ![](/assets/img/Pasted image 20221226175834.png)
+
 
 	- The payload in this case is popping up a 'cmd.exe'.
 	- Note that Weaponization's stage's goal is to create Initial Access. After that, it is up to the implant's persistence,evasion,etc. to stay in the target machine and deliver the impact.
 
 ### Changing the payload from invoking 'cmd.exe' to creating a reverse shell:
+
 <u>Attacker's Machine</u>:
 
+
 ![](/assets/img/Pasted image 20221226180916.png)
+
 
 	- Notice that the listening port from the attacker is port 443 which represents HTTPS connection.
 	- This could be seen as the end-user(victim) making an outbound legitimate HTTPS connection.
 
 <u>What I had</u>:
+
 
 ![](/assets/img/Pasted image 20221226181201.png)
 
