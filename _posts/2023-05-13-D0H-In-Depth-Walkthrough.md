@@ -872,7 +872,9 @@ Small Table of what happens:
 - Recap for the COW Mechanism**:
 
     `1.` Kernel finding the correct physical address to write the string "moo" onto
+    
     `2.` If the kernel doesn't find the correct physical address, it will allocate one (Kernel copies the string to a new private page). Otherwise, move along.
+    
     `3.` Kernel actually writing (using "write()") the string "moo" onto the said physical address
 
 - The exploit is not specifically choosing the physical address of the original shared file. Rather, it is taking advantage of the race condition and the kernel's handling of the COW mechanism to bypass the expected behavior and achieve unauthorized write access to the original shared file.
