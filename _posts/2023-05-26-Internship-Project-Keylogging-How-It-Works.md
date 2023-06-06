@@ -7,6 +7,8 @@ tags: [TechCareers]
 
 ----------------------
 
+DISCLAIMER – This article is provided for educational and informational purposes only. The techniques, tools, and examples discussed are intended to promote a better understanding of cybersecurity and to enhance defensive measures. The usage of these techniques should strictly adhere to applicable laws, regulations, and ethical guidelines. The author and publisher of this article shall not be held responsible for any misuse or illegal activities conducted by individuals or entities based on the information provided.
+
 # Introduction
 
 Keylogging, often considered a type of cyber threat, is the practice of recording the keys struck on a keyboard, typically covertly, so that a person using the keyboard is unaware that their actions are being monitored. This report aims to discuss the technical aspects of keylogging, its potential effects, and the associated countermeasures. It is critical to note that this information is to be used for ethical and educational purposes only, such as cybersecurity research and the development of protective measures.
