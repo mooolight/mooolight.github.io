@@ -74,7 +74,7 @@ Keylogging, often considered a type of cyber threat, is the practice of recordin
 
 		- How can they continually record keystrokes of the victim?
 
-		- What can attackers do to exfiltrate the recorded data of the victim? (TCP Socket Exfil)
+		- What can attackers do to exfiltrate the recorded data of the victim? (Python module in this case)
 
 - **Note: All other concepts needed for the setup are simple variation of them and the focus is mainly on `Keylogging` part.**
 
