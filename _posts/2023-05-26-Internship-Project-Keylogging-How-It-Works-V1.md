@@ -1,5 +1,5 @@
 ---
-title: Internship Research Project, Keylogging - How it Works and its Impacts
+title: Internship Research Project, Keylogging - How it Works and its Impacts (Version 1)
 date: 2023-05-26 12:00:00 -500
 categories: [Malware, Research Project]
 tags: [TechCareers]
