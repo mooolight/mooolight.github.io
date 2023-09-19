@@ -168,7 +168,7 @@ Keylogging, often considered a type of cyber threat, is the practice of recordin
 
 **Situational Context**:
 
-- User `noob` received an email from a rogue IT email account that states to execute an `HTML Application` file attached in the email via ***powershell***. This was prompted because user `noob` had previously asked the same IT person for help on its HTML webpages. The user `noob` unsuspectingly executes the file in powershell that grants the attacker a foothold on the victim's computer.
+- User "noob" received an email from a fraudulent IT account, instructing them to run an attached HTML Application file through PowerShell. Believing the email to be legitimate, as they had previously sought assistance on HTML webpages from the same IT contact, user "noob" unwittingly executed the file. This action provided the attacker with unauthorized access to the victim's computer.
 
 
 ##### Initial Access - uses HTA (follow THM's tutorial!)
