@@ -54,9 +54,7 @@ Keylogging, often considered a type of cyber threat, is the practice of recordin
 
 ### **Attack Chain**
 
-![](/assets/img/Pasted image 20230521175903.png)
-
-![](/assets/img/Pasted image 20230521175939.png)
+![](/assets/img/Pasted image 20230521175903.png)![](/assets/img/Pasted image 20230521175939.png)
 
 ## Malware Flow of Attack
 
@@ -242,6 +240,7 @@ Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connec
 
 - `UAC Bypass via Fodhelper.exe`: This is chained with RDP access using the credentials "noob:password" acquired prior.
 
+
 ### **Privilege Escalation via UAC Bypass - `fodhelper.exe` + RDP with `user:pass` combo** :
 
 ##### 1. Creating a reverse shell listener on the attacker machine: "nc -lvnp <attacker-ip>"
@@ -269,6 +268,7 @@ Initial Access via HTA (gets triggered using PowerShell) -> Reverse shell connec
 
 **Note**: Changing the Registry key and values `requires` local administrative privileges in which remote connection from user `noob` don't have even if it is a member of the Administrators group. This requires RDP session login.
 
+
 <u>Preparation</u>:
 
 - Setup the text file to be copied online:
@@ -291,6 +291,7 @@ Note that doing this logs out the user 'noob' on their session so we want to mod
 - Checking the commands to execute to modify the Registry `fodhelper.exe` use when it gets executed:
 
 ![](/assets/img/Pasted image 20230521190011.png)
+
 
 - Execution:
 
@@ -359,6 +360,7 @@ The script should be run in Metasploit, as that is the appropriate platform for 
 - **ChatGPT** Explanation:
 
 This command does the same thing as the function in the previous script. It checks the value of the `fDenyTSConnections` registry key. If it's 0, it means RDP is enabled, and the command prints "RDP is enabled". If it's not 0, it means RDP is disabled, and the command prints "RDP is disabled".
+
 
 <u>Checking the RDP once you have RDP session</u>:
 
