@@ -862,8 +862,8 @@ User:\s([\w\s]+),.+(Server.+),.+:\s(\w+)
 REGEX = User:\s([\w\s]+),.+(Server.+),.+:\s(\w+)
 FORMAT = Username::$1 Server::$2 Action::$3
 WRITE_META = true
-
 ```
+
 ![](/assets/img/Pasted image 20240416161916.png)
 
 In the configuration file, we have updated the **`REGEX`** pattern and the **`FORMAT`**, where we have specified different fields separating with a space.
