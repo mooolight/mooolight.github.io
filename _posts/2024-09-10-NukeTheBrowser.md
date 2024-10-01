@@ -1,7 +1,7 @@
 ---
 title: NukeTheBrowser
 date: 2024-09-10 00:00:00 -500
-categories: [CyberDefenders, DFIR, Network Forensics]
+categories: [CyberDefenders, Network Forensics, DFIR]
 tags: [CyberDefenders]
 ---
 
