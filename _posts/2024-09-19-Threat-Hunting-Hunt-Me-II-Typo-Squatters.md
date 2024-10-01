@@ -6,3 +6,6 @@ tags: [TryHackMe]
 ---
 
 
+# Hunt Me II - Typo Squatters
+
+<object data="{{ mooolight.github.io }}{{ mooolight.github.io }}/assets/pdf/{4} Typo_Squatters_II_Writeup.pdf" width="800" height="1000" type="application/pdf"></object>
