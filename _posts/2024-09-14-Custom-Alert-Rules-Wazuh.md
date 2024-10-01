@@ -24,9 +24,10 @@ Out of the box, Wazuh has a comprehensive set of pre-configured rules. While the
 
 
 ------
+
 # Decoders
 
-- One of the many features of `Wazuh` is that it can ingest logs from different sources and ***generate alerts based on their `contents`***. 
+- One of the many features of Wazuh is that it can ingest logs from different sources and ***generate alerts based on their `contents`***. 
 
 - However, various logs can have varied data types and structures. To manage this, Wazuh uses `Decoders` that use `regex` to extract only the needed data for later use.
 
