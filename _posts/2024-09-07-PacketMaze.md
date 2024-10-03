@@ -6,10 +6,6 @@ tags: [CyberDefenders]
 ---
 
 
----
-Date: July 22,2024
----
-
 # Instructions:
 
 - Uncompress the lab (pass: **cyberdefenders.org**)
@@ -46,12 +42,14 @@ As a soc analyst working for a security service provider, you have been tasked w
 # Questions:
 
 <u>Preview</u>:
+
 ![](/assets/img/Pasted image 20240727233705.png)
 
 	- Seems like this IP talks a lot of hosts outside of its network.
 
 
 <u>Checking major protocols used</u>:
+
 ![](/assets/img/Pasted image 20240727233918.png)
 
 
@@ -59,6 +57,7 @@ As a soc analyst working for a security service provider, you have been tasked w
 ## `Q1` What is the FTP password?
 
 Checking out the FTP protocol:
+
 ![](/assets/img/Pasted image 20240727234122.png)
 
 	- The attacker seems to be connecting to the FTP server encapsulated with TLS and checking all the documents under the /home/kali/Documents and found the file 'accountNum.zip'.
@@ -136,9 +135,11 @@ ip.src == 192.168.1.26 && ip.dst == 24.39.217.246 && udp
 ## `Q6`:What was the camera model name used to take picture `20210429_152157.jpg` ?
 
 Checking the ftp sessions: There's a second authentication on the FTP server after the listing of `accountNum.zip`:
+
 ![](/assets/img/Pasted image 20240728002737.png)
 
 Two `.jpeg` files got stored on the FTP server:
+
 ![](/assets/img/Pasted image 20240728002837.png)
 
 - This question seems to be related to DFIR. Let's go check `dfir.science` requests in the pcap:
