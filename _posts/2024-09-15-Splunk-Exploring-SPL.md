@@ -60,14 +60,9 @@ This tab saves the search queries that the user has run in the past along with t
 ![](/assets/img/Pasted image 20240414181211.png)
 
 
-
-
 **4) Data Summary:**
 
 This tab provides a summary of the data type, the data source, and the hosts that generated the events as shown below. This tab is very important feature used ***`to get a brief idea`*** about the network visibility.
-
-![[81459123900e070704fe4fdac9f9b33e.gif]]
-
 
 
 **5) Field Sidebar:**
@@ -78,6 +73,7 @@ The Field Sidebar can be found on the left panel of Splunk search. This sideba
 
 
 <u>Some important points to understand about the sidebar are explained below</u>:
+
 ![](/assets/img/Pasted image 20240414181509.png)
 
 
@@ -94,6 +90,7 @@ index=windowslogs | chart count(EventCode) by Image
 
 
 - In the left field panel, which `Source IP` has recorded max events?
+
 ![](/assets/img/Pasted image 20240414182041.png)
 
 <u>Answer</u>:
@@ -233,6 +230,7 @@ Event log example:
 
 
 - Now search for the term`cyber*`, how many events are returned?
+
 ![](/assets/img/Pasted image 20240414184724.png)
 
 <u>Answer</u>:
@@ -247,6 +245,7 @@ Event log example:
 Our network generates thousands of logs each minute, all ingesting into our SIEM solution. It becomes a daunting task to search for any anomaly without using filters. SPL allows us to use **Filters** to narrow down the result and only show the important events that we are interested in. We can add or remove certain data from the result using filters. The following commands are useful in applying filters to the search results.
 
 <u>Fields</u>:
+
 ![](/assets/img/Pasted image 20240414184838.png)
 
 Let's use the fields command to only display host, User, and SourceIP fields using the following syntax.  
@@ -268,6 +267,7 @@ index=windowslogs | fields + host + User + SourceIp
 
 
 ##### **Search**
+
 ![](/assets/img/Pasted image 20240414185210.png)
 
 Use the search command to show all the events containing the term `Powershell`. This will return all the events that contain the term "**`Powershell`**".  
@@ -322,6 +322,7 @@ index=windowslogs | table _time EventID Hostname SourceName | reverse
 
 
 - Use the `dedup` command against the `Hostname` field before the `reverse` command in the query mentioned in Question 1. What is the first `username` returned in the `Hostname` field?
+
 <u>Search Query</u>: 
 ```c
 index=windowslogs | table _time EventID Hostname SourceName | reverse | dedup EventID
@@ -364,6 +365,7 @@ The following search query will show the table containing the mentioned fields a
 ```c
 index=windowslogs |  table _time EventID Hostname SourceName | head 5
 ```
+
 ![](/assets/img/Pasted image 20240414203355.png)
 
 
@@ -420,6 +422,7 @@ index=windowslogs | table _time EventID Hostname SourceName | tail 5
 ```
 
 <u>Output</u>:
+
 ![](/assets/img/Pasted image 20240414204011.png)
 
 
@@ -493,9 +496,6 @@ The following command will highlight the three mentioned fields in the raw logs
 index=windowslogs | highlight User, host, EventID, Image
 ```
 
-![[61ad47b204639fa0f75b278bec21abac.gif]]
-
-
 
 ### STATS Commands
 
@@ -523,8 +523,6 @@ These are very important types of transforming commands that are used to present
 index=windowslogs | chart count by User
 ```
 
-![[a954b0a1d37542650df294461d756c61.gif]]
-
 
 ### Timechart
 
@@ -541,6 +539,7 @@ index=windowslogs | timechart count by Image
 #### Question and Answers section:
 
 - List the top 8 Image processes using the top command -  what is the total count of the 6th Image?
+
 ![](/assets/img/Pasted image 20240414205825.png)
 
 <u>Answer</u>:
@@ -556,6 +555,7 @@ index=windowslogs | rare User
 ```
 
 ![](/assets/img/Pasted image 20240414210732.png)
+
 <u>Answer</u>:
 ```c
 James
@@ -569,17 +569,11 @@ index=windowslogs | chart count by Image | sort Image
 ```
 
 <u>Statistics</u>:
+
 ![](/assets/img/Pasted image 20240414211140.png)
 
 <u>Pie chart</u>:
+
 ![](/assets/img/Pasted image 20240414211204.png)
-
-
-
-
-
-
-
-
 
 
