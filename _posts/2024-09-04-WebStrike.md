@@ -15,7 +15,7 @@ An anomaly was discovered within our company's intranet as our Development team 
 - Wireshark
 
 
-- Q1: Understanding the geographical origin of the attack aids in geo-blocking measures and threat intelligence analysis. What city did the attack originate from?
+### Q1: Understanding the geographical origin of the attack aids in geo-blocking measures and threat intelligence analysis. What city did the attack originate from?
 
 First, let's figure out the IP address of the attacker: `Statistics > Conversations`
 
@@ -39,7 +39,7 @@ City: Tianjin, Country: China, AS Number: 4837, AS Organization: CHINA UNICOM Ch
 ```
 
 
-- Q2: Knowing the attacker's user-agent assists in creating robust filtering rules. What's the attacker's user agent?
+### Q2: Knowing the attacker's user-agent assists in creating robust filtering rules. What's the attacker's user agent?
 
 Wireshark query:
 ```c
@@ -55,7 +55,7 @@ Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0
 
 
 
-- Q3: We need to identify if there were potential vulnerabilities exploited. What's the name of the malicious web shell uploaded?
+### Q3: We need to identify if there were potential vulnerabilities exploited. What's the name of the malicious web shell uploaded?
 
 From here:
 
@@ -89,12 +89,12 @@ Digging into this packet by following its TCP or HTTP stream:
 -> Answer: `image.jpg.php`
 
 
-- Q4: Knowing the directory where files uploaded are stored is important for reinforcing defenses against unauthorized access. Which directory is used by the website to store the uploaded files?
+### Q4: Knowing the directory where files uploaded are stored is important for reinforcing defenses against unauthorized access. Which directory is used by the website to store the uploaded files?
 
 -> Answer: `/reviews/uploads/`
 
 
-- Q5: Identifying the port utilized by the web shell helps improve firewall configurations for blocking unauthorized outbound traffic. What port was used by the malicious web shell?
+### Q5: Identifying the port utilized by the web shell helps improve firewall configurations for blocking unauthorized outbound traffic. What port was used by the malicious web shell?
 
 After the upload of the malicious web shell:
 
@@ -107,7 +107,7 @@ After the upload of the malicious web shell:
 -> Answer: `8080`
 
 
-- Q6: Understanding the value of compromised data assists in prioritizing incident response actions. What file was the attacker trying to exfiltrate?
+### Q6: Understanding the value of compromised data assists in prioritizing incident response actions. What file was the attacker trying to exfiltrate?
 
 Attacker's action during the webshell compromise:
 ```c
