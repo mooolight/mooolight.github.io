@@ -45,6 +45,7 @@ Let’s connect to the lab and continue to understand how Splunk data manipula
 **Note:** The scripts we will be working on are placed in the `~/Downloads/scripts` directory. We will need to run all the commands with a root user.
 
 <u>Scripts on the directory</u>:
+
 ![](/assets/img/Pasted image 20240416002120.png)
 
 
@@ -239,22 +240,27 @@ Splunk apps are pre-packaged `software modules` or `extensions` that enhance th
 #### Create a simple App
 
 `2.` Once the Splunk Instance is loaded, click on the `Manage App` tab as highlighted below:
+
 ![](/assets/img/Pasted image 20240416015006.png)
 
 
 `3.` It will take us to the page that contains all the available apps in Splunk. To create a new app, Click on the `Create App` tab as shown below:
+
 ![](/assets/img/Pasted image 20240416015042.png)
 
 
 `4.` Next, fill in the details about the new app that we want to create. The new app will be placed in the `/opt/splunk/etc/apps` directory as highlighted below:
+
 ![](/assets/img/Pasted image 20240416015119.png)
 
 
 `5.` Great. A new Splunk app has been created successfully and it can be shown on the Apps page. Click on the `Launch App` to see if there is any activity logged yet.
+
 ![](/assets/img/Pasted image 20240416015141.png)
 
 
 `6.` As it is evident, no activity has been logged yet. Follow the next steps to generate sample logs.
+
 ![](/assets/img/Pasted image 20240416015231.png)
 
 
@@ -294,6 +300,7 @@ bin default local metadata
 ## Splunk App directory
 
 `9.` Some of the key directories and files that are present in the app directory are explained briefly below:
+
 ![](/assets/img/Pasted image 20240416015605.png)
 
 
@@ -347,7 +354,6 @@ The above configuration picks the output from the script `samplelogs.py` and sen
 
 
 `14.` Checking the log from `index=main` inside the Splunk web app:
-![[d8bef4883bc3cbd5d984af35a7fac2fe.gif]]
 
 ![](/assets/img/Pasted image 20240416021900.png)
 
@@ -370,6 +376,7 @@ So far, we have created a simple Splunk app, used the `bin` directory to creat
 - In this room, we will be working on the ***`DataApp`*** created in the previous task and is placed at `/opt/splunk/etc/apps/DataApp/`.
 
 `1.` For this task, we will use the Python script `vpnlogs` from the `~/Downloads/scripts` directory, as shown below:
+
 ![](/assets/img/Pasted image 20240416021526.png)
 
 	- This directory contains various scripts, which we will explore later in this room. For now, let’s focus on the 'vpnlogs' script.
@@ -381,6 +388,7 @@ So far, we have created a simple Splunk app, used the `bin` directory to creat
 - `action performed on the connection`
 
 as shown in the output below when we run the command `./vpnlogs`:
+
 ![](/assets/img/Pasted image 20240416021604.png)
 
 	- Note that to view these logs, you have to execute them
@@ -398,6 +406,7 @@ interval = 5
 ```
 
 <u>After copying the contents to inputs.conf</u>:
+
 ![](/assets/img/Pasted image 20240416023416.png)
 
 
@@ -409,6 +418,7 @@ root@tryhackme:/opt/splunk/etc/apps/DataApp/bin# cp /home/ubuntu/Downloads/scrip
 ![](/assets/img/Pasted image 20240416022758.png)
 
 The above lines tell Splunk to run the script `vpnlogs` every 5 seconds and send the output to the `main` index with ***sourcetype*** `vpn_logs` and ***host*** value as `vpn_server`. The `inputs.conf` file looks like this:
+
 ![](/assets/img/Pasted image 20240416022317.png)
 
 
@@ -439,6 +449,7 @@ index=main sourcetype=vpn_logs
 `6.` Excellent, we are getting the VPN logs after every 5 seconds. But can you observe the problem? It's evident that Splunk cannot determine the boundaries of each event and ***`considers multiple events as a single event`***. By default, Splunk breaks the event after `carriage return` instead of breaking it at `newline`.
 
 Mistake: `->` 5 events clustered as a single event:
+
 ![](/assets/img/Pasted image 20240416023946.png)
 
 
@@ -462,6 +473,7 @@ User: Michael Brown, Server: Server E, Action: CONNECT
 
 
 - We will use `[reg101.com](https://tryhackme.com/r/room/reg101.com)` to create a regex pattern. If we look closely, all events end with the terms `DISCONNECT` or `CONNECT`. We can use this information to create a regex pattern `(DISCONNECT|CONNECT)` , as shown below:
+
 ![](/assets/img/Pasted image 20240416024117.png)
 
 
@@ -482,9 +494,9 @@ MUST_BREAK_AFTER = (DISCONNECT|CONNECT)
 ```c
 index=main sourcetype=vpn_logs
 ```
-![[dc6f01dab0ea4576b2bc4e4ad467d489.gif]]
 
 Output:
+
 ![](/assets/img/Pasted image 20240416025045.png)
 
 	- Works well now!
@@ -552,7 +564,6 @@ index=main sourcetype = auth_logs
 
 
 
-
 ### Identifying the problem
 
 If we observe the events, we will see that Splunk is breaking the `2-line` Event into 2 different events and is unable to determine the boundaries.
@@ -569,6 +580,7 @@ BREAK_ONLY_BEFORE = \[Authentication\]
 
 ![](/assets/img/Pasted image 20240416154216.png)
 
+
 #### Search head
 
 Go to Splunk Search head, and use the following search query.
@@ -577,8 +589,6 @@ Go to Splunk Search head, and use the following search query.
 ```c
 index=main sourcetype = auth_logs
 ```
-
-![[6c37c54e87e0462c2d5fcd623d8ca762.gif]]
 
 - Which stanza is used to break the event boundary before a pattern is specified in the above case?
 ```c
@@ -648,6 +658,7 @@ index=main sourcetype=purchase_logs
 ### Fixing Event Boundaries
 
 We will use `regex101.com` to create a regex pattern to identify the end boundary of each event, as shown below:
+
 ![](/assets/img/Pasted image 20240416155401.png)
 
 
@@ -705,6 +716,7 @@ It is important to note that, this `sedcmd` is just one of the configuration s
 ### Masking CC Information
 
 `6.` Let’s now use the above knowledge gain to create a regex that replaces the credit card number with something like this -> `6011-XXXX-XXXX-XXXX.`, as shown below:
+
 ![](/assets/img/Pasted image 20240416160049.png)
 
 
@@ -725,7 +737,6 @@ SEDCMD-cc = s/-\d{4}-\d{4}-\d{4}/-XXXX-XXXX-XXXX/g
 
 
 `7.` Restart Splunk and check Splunk Instance to see how our changes are reflected in the logs.
-![[f242295b6339d120bd6d5c9d6020557a.gif]]
 
 	- Great. With some changes in the configurations, we were able to mask the sensitive information. As a SOC analyst, it is important to understand the criticality of masking sensitive information before being logged in order to comply with standards like HIPAA, PCI-DSS, etc.
 
@@ -782,6 +793,7 @@ User: John Doe, Server: Server D, Action: DISCONNECT
 ```c
 User:\s([\w\s]+)
 ```
+
 ![](/assets/img/Pasted image 20240416161042.png)
 
 
@@ -797,6 +809,7 @@ WRITE_META = true
 
 
 - The `transforms.conf` would look like this:
+
 ![](/assets/img/Pasted image 20240416161245.png)
 
 
@@ -815,6 +828,7 @@ WRITE_META = true
 ### Updating `props.conf`
 
 We need to update the `props.conf` to mention the recent updates we did in `transforms.conf`. Here, we are appending the configuration for `sourcetype` **vpn_logs** with the line `TRANSFORM-vpn = vpn_custom_fields`, as shown below:
+
 ![](/assets/img/Pasted image 20240416161423.png)
 
 
@@ -827,6 +841,7 @@ INDEXED = true
 ```
 
 `Fields.conf` file would look like this:
+
 ![](/assets/img/Pasted image 20240416161534.png)
 
 
@@ -837,7 +852,6 @@ That’s all we need in order to extract the custom fields. Now, restart the Sp
 index=main sourcetype=vpn_logs
 ```
 
-![[2f3cb792e75ebd502e65f96bd0111c8f.gif]]
 
 	- There is a field that capture the usernames from the logs displayed in Splunk web application!
 	- This is it. With some changes to the configuration files, we were able to extract a custom field from the logs.
@@ -872,6 +886,7 @@ In the configuration file, we have updated the **`REGEX`** pattern and the **
 ### Updating fields.conf
 
 Now it's time to update the `fields.conf` with the field names that we want Splunk to extract at index time:
+
 ![](/assets/img/Pasted image 20240416162026.png)
 
 
@@ -882,10 +897,9 @@ As we have updated the configuration, we will need to restart Splunk for the c
 index=main sourcetype=vpn_logs
 ```
 
-![[73d0639bb0a0c82c2debac1a86d10c86.gif]]
-
 
 - Extract the Username field from the sourcetype purchase_logs we worked on earlier. How many Users were returned in the Username field after extraction?
+
 ![](/assets/img/Pasted image 20240416162346.png)
 
 ```c
