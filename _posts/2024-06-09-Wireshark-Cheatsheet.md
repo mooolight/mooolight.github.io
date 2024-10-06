@@ -11,9 +11,10 @@ tags: [TryHackMe]
 
 ### Packet Lookups:
 
-![[Pasted image 20240306220141.png]]
+![](/assets/img/Pasted image 20240306220141.png)
 
-![[Pasted image 20240306232041.png]]
+![](/assets/img/Pasted image 20240306232041.png)
+
 
 -----
 
@@ -23,7 +24,7 @@ tags: [TryHackMe]
 Statistics --> Capture File Properties
 ```
 
-![[Pasted image 20240306220522.png]]
+![](/assets/img/Pasted image 20240306220522.png)
 
 -----
 
@@ -33,7 +34,8 @@ Statistics --> Capture File Properties
 Edit > Mark
 ```
 
-![[Pasted image 20240306232153.png]]
+![](/assets/img/Pasted image 20240306232153.png)
+
 
 -----
 
@@ -44,7 +46,7 @@ Edit > Mark
 Edit > Packet Comment...
 ```
 
-![[Pasted image 20240306232343.png]]
+![](/assets/img/Pasted image 20240306232343.png)
 
 -----
 
@@ -54,7 +56,7 @@ Edit > Packet Comment...
 Edit > Export Objects
 ```
 
-![[Pasted image 20240306232549.png]]
+![](/assets/img/Pasted image 20240306232549.png)
 
 -----
 
@@ -64,11 +66,12 @@ Edit > Export Objects
 View > Time Display Format
 ```
 
-![[Pasted image 20240306232627.png]]
+![](/assets/img/Pasted image 20240306232627.png)
 
 
 Expected Output:
-![[Pasted image 20240306232801.png]]
+
+![](/assets/img/Pasted image 20240306232801.png)
 
 -----
 
@@ -78,7 +81,8 @@ Expected Output:
 Right click menu -> Analyze -> Conversation Filter
 ```
 
-![[Pasted image 20240306235421.png]]
+![](/assets/img/Pasted image 20240306235421.png)
+
 
 -----
 
@@ -88,7 +92,7 @@ Right click menu -> Analyze -> Conversation Filter
 Right-click -> Apply as Column
 ```
 
-![[Pasted image 20240307000047.png]]
+![](/assets/img/Pasted image 20240307000047.png)
 
 
 ----
@@ -149,11 +153,13 @@ Possible ARP Flooding from detection:
 
 ###### ARP in Wireshark:
 
-![[Pasted image 20240307011814.png]]
+![](/assets/img/Pasted image 20240307011814.png)
+
 
 Spoofing:
 
-![[Pasted image 20240307015059.png]]
+![](/assets/img/Pasted image 20240307015059.png)
+
 
 -----
 # DNS
@@ -165,7 +171,7 @@ Spoofing:
 dns.qry.name.len > 15 and !mdns and ip.dst == 10.9.23.102
 ```
 
-![[Pasted image 20240315152646.png]]
+![](/assets/img/Pasted image 20240315152646.png)
 
 
 ---
@@ -178,9 +184,10 @@ dns.qry.name.len > 15 and !mdns and ip.dst == 10.9.23.102
 Tools > Credentials
 ```
 
-![[Pasted image 20240318152504.png]]
+![](/assets/img/Pasted image 20240318152504.png)
 
-![[Pasted image 20240318152518.png]]
+![](/assets/img/Pasted image 20240318152518.png)
+
 
 
 
