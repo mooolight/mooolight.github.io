@@ -20,6 +20,7 @@ tags: [TryHackMe]
 
 
 - The investigation process identifies communicated hosts in terms of:
+
 ```c
 - Time
 - Frequency
