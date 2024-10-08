@@ -21,7 +21,7 @@ timezone:
 
 title: Cybersecurity Blog                          # the main title
 
-tagline: Pentesting, Red Teaming, Malware & Windows Security Research   # it will display as the sub-title
+tagline: Blue/Red Teaming, Malware & Windows/Linux Security Research   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   A blog about pentesting, red teaming and malware with a focus on Windows security research.
