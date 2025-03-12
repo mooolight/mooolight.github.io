@@ -248,18 +248,19 @@ Basically, the Keyboard, along with other devices such as a mouse, etc., needs o
 ![](/assets/img/Pasted image 20230515101442.png)
 
 <u>Driver Stack (from top to bottom)</u>:
-`1.` **Kbdclass** - high level filter driver, keyboard class
-`2.` **Optional high level filter driver** - keyboard class
-`3.` **i8042prt** - functional keyboard driver
-`4.` **root bus driver**
+
+- `1.` **Kbdclass** - high level filter driver, keyboard class
+- `2.` **Optional high level filter driver** - keyboard class
+- `3.` **i8042prt** - functional keyboard driver
+- `4.` **root bus driver**
 
 
 **Kbdclass (keyboard class driver)** tasks:
-`1.` Support general and hardware-dependent operations of the device class
-`2.` To support PnP, support power management and Windows Management Instrumentation (WMI)
-`3.` To support operations for legacy devices
-`4.` Simultaneous execution of operations from more than one device (`remote execs?`)
-`5.` To implement the `class service callback routine` : called by the functional driver to transmit data(`scan codes`) from the **device input buffer** to the **device driver data buffer**.
+- `1.` Support general and hardware-dependent operations of the device class
+- `2.` To support PnP, support power management and Windows Management Instrumentation (WMI)
+- `3.` To support operations for legacy devices
+- `4.` Simultaneous execution of operations from more than one device (`remote execs?`)
+- `5.` To implement the `class service callback routine` : called by the functional driver to transmit data(`scan codes`) from the **device input buffer** to the **device driver data buffer**.
 
 
 **Question**: What is `Kbdclass` driver?
@@ -284,7 +285,7 @@ The functional driver of the PS/2 port (Keyboard and mouse) is the `i8042prt dri
 
 ![](/assets/img/Pasted image 20230515134746.png)
 
-```
+```c
 IO : 0060-0060 == port 60h, where the keyboard controller transmits the scan code.
 IO : 0064-0064 == port 64h, where the keyboard controller checks if it can transmit a scan code or if the motherboard can read on the output buffer from the keyboard's internal buffer.
 IRQ1 : the Interrupt handler that processes the signal sent by the Keyboard's microcontroller.
