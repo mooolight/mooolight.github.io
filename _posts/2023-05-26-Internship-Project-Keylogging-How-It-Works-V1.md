@@ -15,6 +15,866 @@ Keylogging, often considered a type of cyber threat, is the practice of recordin
 
 **Note: Target is normal user NOT a pentester/security folks**.
 
+----------------------------------
+
+# How the Keyboard Works - Keyboard I/O at `Kernel-level` Perspective
+
+### Processing Data entered via the Keyboard in Windows
+
+- **Keyboard** : separate device connected to the computer via port `PS/2` or USB.
+- **8042 Microcontroller** : constantly scans key being pressed on the keyboard <u>independently</u> of central CPU activity.
+
+<u>How the keyboard interacts with the Motherboard</u>:
+```mathematica
+  -------------------------------------
+ |            Motherboard              |
+ |                                     |
+ |   ------------------------------    |
+ |  |    Micro-controller 1         |  |
+ |   ------------------------------    |
+ |                                     |
+  -------------------------------------
+         ^
+         |
+         |
+  -----------------------------
+ |        Keyboard             |
+ |                             |
+ |   ---------------------     |
+ |  | Micro-controller 2  |    |
+ |   ---------------------     |
+  -----------------------------
+```
+
+
+- **Scan Codes(2)** : the number to which each key in the Keyboard is assigned. Note that this isn't the ASCII value of the key. It is the signal given to the motherboard to interpret the key being pressed.
+
+		- 1st: Scan the code for the key being pressed down.
+		- 2nd: Scan code for the key being released.
+
+- Note that some keys only have a function when they are pressed: `Shift, CTRL, ALT.`
+
+![](/assets/img/Pasted image 20230515075633.png)
+
+**Question: How exactly the microcontroller that resides in the Keyboard that a specific key has been detected?**
+
+Since it consistently polls for a key being pressed, it checks which electrical circuit is being closed. If a particular part is cut off, then the microcontroller from the Keyboard sends the signal to the microcontroller located in the motherboard.
+
+**Question: What happens to the signal sent to the 2nd microcontroller found in the Motherboard when receiving the Scan code?**
+
+- It converts the Scan code into something the OS can understand, makes it accessible to port 60h(i/o), and generates a hardware interrupt. This means that keyboard events can interrupt any operation in the system.
+The interrupt handler processes the interrupt by going to I/O `port 60h` and ***retrieving the scan code*** that the second microcontroller placed there. Once retrieved, it can be processed to determine which key was pressed on the Keyboard and take appropriate action, like outputting the letter "A."
+
+
+**Note**: The Keyboard contains an internal *** 16-byte buffer***, which it uses to exchange data with the computer.
+
+The keyboard's internal 16-byte buffer stores the scan codes produced when a key is pressed or released.
+
+- When you press a key, the Keyboard's microcontroller generates a unique identifier called a scan code for that key press event. If you release the key, another scan code is generated. These scan codes are temporarily stored in the Keyboard's internal 16-byte buffer before being sent to the computer.
+
+The 16-byte buffer allows the Keyboard to "remember" a sequence of key press and release events and send them to the computer in the correct order. This is especially useful when multiple keys are pressed quickly or simultaneously.
+
+- For example, if you press the 'A' key and then quickly press the 'B' key, the scan codes for the 'A' key press, 'A' key release, 'B' key press, and 'B' key release events would all be stored in the Keyboard's buffer. ***The Keyboard's microcontroller would then send these scan codes to the computer one at a time, in the order they occurred***.
+
+- Each position in the 16-byte buffer typically holds one byte, enough to store a single scan code. Note that some special keys or key combinations might generate a multi-byte scan code, occupying multiple positions in the buffer.
+
+
+-----------------
+
+## Low-level Interaction with the Keyboard via the Input/Output Port
+
+**Note**: Both of these controllers exist in the Keyboard.
+
+- **Keyboard Controller** - Data Transmission (`sending and receiving key scan codes`)
+- **Keyboard System Controller** - Status about Data Transmission whether it is to be allowed or not (`controlling and checking the status of the keyboard`)
+
+
+<u>Computer Reading Scan Codes sent by the Keyboard Microcontroller</u>:
+```mathematica
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [Keyboard] -------> ------> -------> ? | port 64h | X [Keyboard System Controller (Inside Keyboard)]  ==> Not allowed to transmit data to Motherboard
+    [Keyboard] -------> ------> -------> ? | port 64h | / [Keyboard System Controller (Inside keyboard)]  ==> Allowed to transmit data to Motherboard 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+	- Keyboard writing a byte containing the scan code is only allowed, given the status of Port 64h.
+	- The motherboard reading a byte on port 64h allows it to check the status of the Keyboard controller, which is the Scan code sent.
+
+
+<u>Keyboard sending Scan codes from within its microcontroller to the Computer</u>:
+```mathematica
+    -------------------------         -------------------------
+   |       Keyboard          |        |       Computer        |
+   |                         |        |                       |
+   |  Microcontroller    <----------->|  I/O Port 60h (KC)    |
+   |  (Processes scan codes) |        |  (Data transmission)  |
+    -------------------------         -------------------------
+    
+                                   -------------------------
+                                   |  I/O Port 64h (KSC)   |
+                                   |  (Command & Status)   |
+                                   -------------------------
+```
+
+	- Bytes written for Data Transmission to port 60h are sent to the "Keyboard Controller".
+	- Bytes written for Transmission Status to port 64h are sent to the "Keyboard System Controller".
+
+
+- See this to understand how the **Status Register** works: ![[{2} Status Register and Commands Register]]
+
+
+**What happens when you read from `port 64h`?**
+- You get the `status byte`, the value from the **status register**.
+- Each bit of information is given above.
+
+`Bit 1` indicates data is waiting to be read on port `60h`. If `1`, data can be sent to the motherboard. Otherwise, there's no data to be read.
+
+**Important**:
+- Before writing data to the Keyboard (via ***port 60h***), you should check that `bit 1` of the **status byte** is `0`.
+- This ensures that the previous data has been read and the buffer is ready to accept new data.
+
+
+Interaction with the microcontroller within the Keyboard occurs via the input/ output ports 60h and 64h.
+
+The 0 and 1 bits in the ***`status byte`*** (**port 64h** in `read-mode`: `reading input from the user keys pressed.`) make it possible to control the interaction before writing data to these ports. Bit 1 of port 64h should be 0.
+
+		This means the buffer must be empty since the motherboard reads the output buffer and sets Bit 0 to 0.
+
+- When data is `read-accessible` from **port 60h**, bit 1 of port 64h equals 1. There are scan codes in the internal buffer(filled), but the controller doesn't know them yet.
+
+- The Keyboard on/off bits in the ***`command byte`*** (**port 64h** in `write-mode` : `translating the signals generated by key pressed to be converted to scan codes and stored into the output buffer`) determines whether or not the Keyboard is active, and whether the keyboard controller will call a system interrupt when the user presses a key.
+
+- Bytes written to **port 60h** are sent to the keyboard controller, while bytes written to **port 64h** are sent to the keyboard system controller.
+
+		- See text diagram above.
+
+
+------------
+
+## The Architecture of "interactive input devices"
+
+**Question: What processes the hardware interrupts that are generated when data sent by the keyboard appear on `port 60h`?**
+
+- Ans: Done through the handler of the keyboard hardware interrupt `IRQ1`.
+
+<u>Keyboard sending Scan codes from within its microcontroller to the Computer</u>:
+```mathematica
+    -------------------------         -------------------------
+   |       Keyboard          |        |       Computer        |
+   |                         |        |                       |
+   |  Microcontroller    <----------->|  I/O Port 60h (KC)    |
+   |  (Processes scan codes) |        |  (Data transmission)  |
+    -------------------------         -------------------------
+    
+                                   -------------------------
+                                   |  I/O Port 64h (KSC)   |
+                                   |  (Command & Status)   |
+                                   -------------------------
+```
+
+
+	- In Windows OS, this is conducted by the system driver i8042prt.sys.
+
+Basically, the Keyboard, along with other devices such as a mouse, etc., needs other stuff before it can interact with the computer.
+
+
+-----------
+
+## Kernel mode drivers for PS/2 Keyboards
+
+### Driver Stack for System Input Devices
+
+![](/assets/img/Pasted image 20230515101224.png)
+
+- Regardless of how the Keyboard is physically connected, `keyboard drivers` use ***keyboard class system drivers*** to process data.
+- **Class Drivers** : support system requirements `independent of the hardware requirements` of a specific device class.
+
+
+- The corresponding **functional driver** (`port driver`) supports the execution of `input/output` operations in correlation with the device being used.
+- In x86 Windows, this is implemented in a single system keyboard and mouse drivers (`i8042`).
+
+### Driver stack for Plug and Play PS/2 Keyboards in `Kernel Mode`
+
+![](/assets/img/Pasted image 20230515101442.png)
+
+<u>Driver Stack (from top to bottom)</u>:
+`1.` **Kbdclass** - high level filter driver, keyboard class
+`2.` **Optional high level filter driver** - keyboard class
+`3.` **i8042prt** - functional keyboard driver
+`4.` **root bus driver**
+
+
+**Kbdclass (keyboard class driver)** tasks:
+`1.` Support general and hardware-dependent operations of the device class
+`2.` To support PnP, support power management and Windows Management Instrumentation (WMI)
+`3.` To support operations for legacy devices
+`4.` Simultaneous execution of operations from more than one device (`remote execs?`)
+`5.` To implement the `class service callback routine` : called by the functional driver to transmit data(`scan codes`) from the **device input buffer** to the **device driver data buffer**.
+
+
+**Question**: What is `Kbdclass` driver?
+- A type of class driver in the WinOS that handles keyboard input.
+The `Class Service Callback Routine` is the function that this driver calls when the Keyboard's internal buffer is full, and it needs to transmit data from its internal buffer to the device driver's data buffer.
+The **device input buffer == keyboard microcontroller's internal buffer** while **device driver data buffer** resides in the computer's range and is accessible by other drivers and the OS. Note that the Keyboard is a separate device, seen as a peripheral, with its microcontroller.
+
+
+**Question**: What happens when the transmitted data from the Keyboard's internal buffer gets extracted by the `callback routine` and stored on the **device driver data buffer**?
+- Ans: One answer could be that it translates the scan code extracted into **virtual key code**.
+
+
+The functional driver of the PS/2 port (Keyboard and mouse) is the `i8042prt driver`.
+
+
+<u>Main Functions of i8042prt driver</u>:
+- To support hardware-dependent simultaneous operations of **PS/2** input devices (the keyboard and mouse share the input and output ports but use different interrupts, **Interrupt Service Routines (ISR)** and procedures for terminating interrupt processing).
+- To support `PnP`, `Power Mgmt`, and `WMI`
+- Support legacy devices
+- To call the **class service callback routine** for classes of keyboards and mice to `transmit data from the input data buffer` ***i8042prt*** to the device driver data buffer.
+- To call a range of `callback functions` which can be implemented in *** high-level driver filters*** for flexible management by a device.
+
+![](/assets/img/Pasted image 20230515134746.png)
+
+```
+IO : 0060-0060 == port 60h, where the keyboard controller transmits the scan code.
+IO : 0064-0064 == port 64h, where the keyboard controller checks if it can transmit a scan code or if the motherboard can read on the output buffer from the keyboard's internal buffer.
+IRQ1 : the Interrupt handler that processes the signal sent by the Keyboard's microcontroller.
+```
+
+
+- A new ***driver filter*** can be added above the keyboard class driver in the driver stack shown above to, for instance, **perform `specific processing` of data entered via the Keyboard**.
+- This driver should support the same processing of all types of `input/output` requests and management commands (***IOCTL***) as the `keyboard class driver`.
+- In such cases, before data is transmitted to the **user-mode subsystem**, the data is passed for processing to this **driver filter**.
+
+**What else can a `Keyboard Driver Filter` be used for?**
+- they can also be misused by malware to intercept and manipulate keyboard input without the user's knowledge.
+
+
+### Device Stack for Plug and Play PS/2 Keyboards in `Kernel Mode`
+
+**Note: The '`top`' in this case is where the `FDO` is.**
+
+![](/assets/img/Pasted image 20230515135647.png)
+
+- Overall, the **device stack** (which more correctly should be called the **device object stack**) for a `PS/2` keyboard is made up of:
+
+`1.` The **physical device object** (PDO), created by the driver bus (in this case, the PCI bus) - `Device0000066`. Responsible for handling low-level device-specific operations.
+
+`2.` The **functional device object** (FDO), created and connected to the PDO by the `i8042prt` port - an unnamed object. The FDO represents the **primary function** of the device (i.e., `accepting keyboard input`), and its primary role is to handle I/O requests for this function. It's also responsible for managing power state transitions for the device.
+
+`3.` **Optional filter objects** for the keyboard device, created by the `keyboard driver filters` developed by 3rd party devs. Inserted into the device stack between the FDO and the device class driver. These filter objects can modify, inspect, or augment the device's behaviour, and they can handle I/O requests before they reach the FDO or the PDO.
+
+	- Remember that "keyboard Driver filters" do "specific processing" of data entered by the Keyboard.
+	- This is probably where the "Scan Codes" get converted into "Virtual Key codes."
+
+`4.` **High level filter objects** for the keyboard device class which are created by the **Kbdclass class driver** - `DeviceKeyboardClass0`. They handle I/O requests common to all devices of a particular class, such as all keyboard devices. They can also add class-specific functionality to the device, such as support for special keys.
+
+**Question**: How does the scan code extracted get processed?
+Ans: (possibly) In a typical device stack, an I/O request would start at the top (with the class filter object`(4)`) and work its way down through any optional filter objects, the FDO, and finally, the PDO`(i8042prt.sys driver)`. Each object in the stack has a chance to handle, modify, or pass along the request as appropriate. The response to the request would then travel back up the stack in the reverse order. This layered architecture allows for a high degree of modularity and flexibility in device driver design.
+
+	- It's similar to the OSI Model (In a way?)
+
+
+-----------------
+
+## Processing Keyboard Input via Applications
+
+### Raw Input Thread (data received from the driver)
+
+This section examines how applications transmit data about keystrokes in user mode.
+
+- **Raw Input Thread** : a tool(?) used by the ***`Microsoft Win32 subsystem`*** to access the keyboard. The `RIT` is a part of the `csrss.exe` system process.
+		- It ***handles/processes*** raw input from hardware devices, which, in this case, is the keyboard (priority) event.
+
+
+##### Steps of operation for the RIT:
+`1.` Since the `csrss.exe` spawns during boot, the system also creates the `RIT` and the **System Hardware Input Queue** (`SHIQ`) on boot.
+
+**System Hardware Input Queue (SHIQ)**: The SHIQ is a `queue data structure` used by the Windows operating system to *** store` raw input events*** until the RIT can process them. When an input event (like a key press or mouse click) occurs, its event information is placed in the SHIQ. The RIT then retrieves events from this queue for processing.
+
+`2.` The `RIT` opens the ***keyboard class device driver*** for exclusive use and uses the **ZwReadFile** function to send it an `input/output` request (**IRP**) of the type `IRP_MJ_READ`. This means the `RIT` is asking the keyboard driver to provide it with any keyboard input data that's available coming from the Keyboard's internal buffer.
+
+**IRP (I/O Request Packet)**: An `IRP` is a ***`data structure`*** used by the Windows operating system to `represent an I/O operation`. It contains information about the operation, such as the type of operation (***read*** and ***write***), the device involved, and any data being transferred.
+
+**IRP_MJ_READ**: This is a specific type of `IRP` that `represents a read operation`. When the RIT sends an `IRP` of this type to the keyboard class device driver (`Kbdclass`), it requests to read data from the Keyboard (i.e., retrieve keypress events).
+
+`3.` Having received the request, the `Kbdclass` driver flags it as pending, places it in the queue (its queue), and returns a `STATUS_PENDING` code. This indicates that the request has been received and will be processed, but the requested data isn't immediately available. The data from the keyboard still has to be read.
+
+`4.` The **RIT** has to wait until the `IRP` terminates, and to determine if the `IRP` actually terminates, the **RIT** uses the `Asynchronous Procedure Call (APC)`.
+
+The RIT then waits for the IRP to complete. This typically happens when ***keyboard input data*** becomes available (i.e., when a key is pressed—there's something on its internal buffer), which means the system is about to read the Keyboard's internal buffer.
+`IRP` terminating means it is almost done reading and emptying the keyboard's internal buffer and emptying it.
+
+
+- In this case, the `APC` would notify the **RIT** when the keyboard driver has data ready to be read.
+- Note that the `APC` has an accompanying callback routine that gets called when the APC gets triggered.
+
+
+**Question**: What happens when a user presses OR releases a key?
+- Ans: The ***keyboard system controller*** yields a `hardware interrupt`.
+
+
+**Question**: How exactly does the hardware interrupt get handled?
+- Ans: The `hardware interrupt processor` calls a special procedure to process the `IRQ1` interrupt (the **interrupt service routine** or **ISR**) 
+- I guess this "`special procedure`" is a function since it is being called.
+
+
+**Question**: Where is this special procedure implemented?
+- Ans: This function is registered in the system by the **i8042prt.sys** driver, which is our functional keyboard driver.
+In this case, the physical action leading to generating a signal coming from the Keyboard is interpreted by this driver, which calls a function and then converts that signal into something the computer can understand, which could be a `Virtual Key Code`.
+
+
+**Question**: How does the data read from the Keyboard's internal buffer get processed by the `hardware interrupt processor` driver after receiving the `IRQ1` interrupt?
+- Ans: This `special procedure`(function) registered by the `i8042prt.sys` driver into the system reads the data from the internal keyboard controller queue (internal buffer).
+This is the exact function that reads the Scan Code from the Keyboard controller's queue.
+
+
+**Question**: Why is the processing of the hardware interrupt should be as quick as possible?
+- Ans: First, let's break down the vocabulary used in the technical blog post.
+
+- **Interrupt Request Level (IRQL)**: This is a `priority level` assigned to an interrupt. Higher levels take priority over lower ones. The `IRQL` is raised when an interrupt is processed to prevent other lower-priority interrupts from disrupting the process.
+
+```
+Background Information:
+- IRQL 0: the processor runs a standard Kernel or User-mode process.
+- IRQL 1: the processor runs an Asynchronous Procedure Call or Page Fault.
+- IRQL 2: This is the `DISPATCH_LEVEL`, which has the highest priority given to a thread to execute some task. IRQL levels greater than 2 can only interrupt any task with this priority.
+```
+
+		- Reference: https://techcommunity.microsoft.com/t5/ask-the-performance-team/what-is-irql-and-why-is-it-important/ba-p/372666
+
+- **Interrupt Routine (IRC)**: This is the `procedure`(a function, which is why it is called a `routine` ) that gets called to handle the hardware interrupt from the Keyboard. Its job is to acknowledge the interrupt and initiate handling it.
+
+**Deferred Procedure Call (DPC)**: DPCs allow `low-priority` tasks to be executed in Windows at a high-priority level. 
+- They are used for tasks(***interrupt handler***) that are NOT time-critical but must be executed at a `high-priority level (DISPATCH_LEVEL)` when the system gets around to them. Any thread/task/interrupt handler given this priority will get executed first, unlike any other low-prio IRQL tasks.
+
+**Question**: What does it mean when the "`IRC` sets up a **DPC** (`l8042KeyboardlsrDpc`) and then terminates"?
+- Ans: It means that the `DPC` was placed on some ***queue*** (like the one APC has) and then terminated since it knows that later, the DPC will be executed once ***high-priority/high-IRQL*** tasks have been executed. After that, the `DPC` executes at the highest priority, the `DISPATCH_LEVEL`.
+
+
+- **I8042KeyboardlsrDpc**: specific DPC that gets called to handle the remainder of the `KEYBOARD interrupt process`. This is a particular priority, given the specification of the type of device that the interrupt handler is handling.
+
+		- Breakdown of this DPC's name:
+		"I8042" is the device driver's name. Note that the keyboard driver has the i8042prt.sys driver, which has functions used to handle I/O operations with the Keyboard.
+		"Isr" means "Interrupt Service Routine"(Interrupt Handling Procedure), which is how the interrupt is handled.
+		- "Dpc" : this means Deferred Procedure Call.
+		- The whole thing means this is a DPC specifically for the ISR placed on the system by the i8042prt.sys driver.
+		- Note: Drivers give the system functions that are understandable at the computer's level.
+
+
+- **KeyboardClassServiceCallback** : This function is registered by the `i8042` driver and the `Kbdclass` driver on the system. When the **DPC** (`I8042KeyboardIsrDpc`) is called, it, in turn, calls this callback function to continue processing the keyboard input data.
+
+
+**Text Diagram of what the cycle is when a `key` is pressed at the kernel-mode**:
+
+```mathematica
+1. Key Pressed on Keyboard
+    |
+    |---[Hardware Interrupt Signal]---> CPU
+    |
+2. CPU Receives Hardware Interrupt Signal
+    |
+    |---[Raise IRQL (Interrupt Request Level)]---> Prevent lower-priority interrupts
+    |
+3. IRC (Interrupt Routine) Called
+    |
+    |---[Place DPC (Deferred Procedure Call) l8042KeyboardIsrDpc]---> For later processing
+    |
+4. IRC Terminates
+    |
+5. IRQL reverts to DISPATCH_LEVEL
+    |
+6. System calls DPC (l8042KeyboardIsrDpc)
+    |
+    |---[Calls Callback Procedure KeyboardClassServiceCallback]---> Continue processing the keyboard input
+7. KeyboardClassServiceCallback Processes the Keyboard Input
+    |
+	| Extracts the pending termination request (IRP) from its queue
+	| Completes the max amount of KEYBOARD_INPUT_DATA, which provides all the info required about keys pressed and released and terminates the IRP.
+8. RIT gets activated again and processes the key press data that is now ready for use by the system
+	|
+9. RIT sends another IRP to the class driver, expecting the following key to be pressed or released, and then repeats the cycle.
+```
+
+**Note:** During the interrupt, the `RIT` gets disabled.
+**Note**: The `keyboard stack` contains at least one pending termination request of `IRP` in the `Kbdclass driver queue`, which is used after the input from the Keyboard's internal buffer gets read.
+
+
+![](/assets/img/Pasted image 20230516084641.png)
+
+	- This is tracking a call sequence that takes place when keyboard input is processed.
+
+![](/assets/img/Pasted image 20230516084758.png)
+
+	- This is how keyboard input looks like at a higher level.
+	- Windows A1,B1, and C1 are called "Windows Messages".
+	- VIQ == "Virtualized Input Queue"
+
+
+-----------------
+
+# Keyboard I/O at `User-level` Perspective
+
+###  Question: Now that we know how the computer reads the Keyboard's input, what happens once it receives it? How does the RIT process incoming data?
+
+
+<u>Vocabulary to be understood</u>:
+- **Hardware Input System Queue** : This is a queue data structure used to ***temporarily store*** `raw input events` from hardware devices. These events are stored in the queue until they can be processed by the `Raw Input Thread (RIT)`.
+
+- **Windows Messages** : In the context of Windows OS, `messages` are the primary means of communication between apps and the OS. Examples of messages specific to the Keyboard are `WM_KEY* and WM_?BUTTON*. 
+
+- **Virtualized Input Queue (VIQ)**: This is another queue used to store input events, but in a slightly different form (How so?). After the RIT processes the raw hardware events from the ***Hardware Input System Queue***, it transforms them into Windows messages and places them into the VIQ for further processing.
+
+- **Virtual Key Codes**: These are `standardized codes` that represent specific keyboard keys. Unlike scan codes, they are NOT tied to the physical layout of the Keyboard. Instead, they `represent the function of the key`. For instance, the `virtual key code` for the letter `A` is the same regardless of where that key is located on the Keyboard.
+
+- **Key Scan Codes**: Codes generated by the Keyboard are stored in the Keyboard's Microcontroller's internal buffer. They represent the physical location of a key on the Keyboard.
+
+**Text-based Diagram with a focus on `(2)` and `(3)`**:
+
+```mathematica
+1. Key Pressed on Keyboard
+	|
+	|---[Generates Key Scan Code]---> Hardware Input System Queue
+	|
+2. RIT Processes the Hardware Input System Queue
+   |
+   |---[Fetches Key Scan Code]---> From Hardware Input System Queue
+   |
+   |---[Interprets Key Scan Code]---> Determines which key was pressed
+   |
+   |---[Generates Corresponding Windows Message]---> e.g., WM_KEYDOWN, WM_KEYUP
+   |
+   |---[Places Windows Message]---> Into Virtualized Input Queue (VIQ)
+   |
+3. VIQ Stores Windows Messages
+   |
+   |---[Fetches Windows Message]---> From VIQ
+   |
+   |---[Extracts Scan Code From Message]---> Determines original key press
+   |
+   |---[Transforms Scan Code to Virtual Key Code]---> Considers keyboard layout, simultaneous key presses(e.g. SHIFT) etc.
+   |
+   |---[Makes Virtual Key Code Available]---> To system/application for further processing
+```
+
+
+------------
+
+## Question: How exactly does the `Scan Code` from the Keyboard get to an application like MS Word as a `Virtual Key Code`?
+
+
+<u>Vocabulary</u>:
+
+`1.`  **Windows Explorer**: This application provides a graphical user interface for accessing file systems and creates the desktop and taskbar in Windows.
+
+`2.`  **Thread**: In the context of computing, a thread is the smallest sequence of programmed instructions that can be managed independently by an operating system scheduler.
+
+`3.`  **Task Panel**: Also known as the taskbar, this component of an operating system displays which programs are currently running.
+
+`4.`  **Desktop (WinSta0_RIT)**: This refers to the primary workspace for the user in Windows, which is managed by a thread known as the Raw Input Thread (RIT).
+
+`5.`  **MS refers to Microsoft Word, a popular word-processing software application.
+
+`6.`  **RIT (Raw Input Thread)**: This system thread processes input from hardware devices like the Keyboard and mouse.
+
+`7.`  **SHIQ (System Hardware Input Queue)**: This queue data structure stores raw input events from hardware devices.
+
+`8.`  **VIQ (Virtualized Input Queue)**: This queue stores input events after they've been processed by the RIT and transformed into Windows messages.
+
+
+**Text Diagram**:
+
+```mathematica
+1. User Logs into the System
+   |
+   |---[Launches Windows Explorer Process]---> Creates Task Panel and Desktop (WinSta0_RIT)
+   |
+   |---[Spawns Thread]---> Binds to RIT
+   |
+2. User Launches MS Word
+   |
+   |---[MS Word Creates Window and Thread]---> Immediately Connects to RIT
+   |
+   |---[Explorer Process Unhooks from RIT]---> Only one thread can be connected to RIT at a time
+   |
+3. User Presses a Key
+   |
+   |---[Generates Key Press Event]---> Appears in SHIQ
+   |
+   |---[Activates RIT]---> Transforms Hardware Input Event into Keyboard Message
+   |
+   |---[Places Keyboard Message]---> Into MS Word's VIQ thread
+```
+
+- When the user logs into the system, the `Windows Explorer` process launches a thread (**WinSta0_RIT**), creating the `task panel` and the `desktop`.
+- This thread of the `explorer.exe` process **binds**  to the `RIT`.
+- If the user launches `MS Word`, the `MS Word thread`, having created a window, will immediately connect to the `RIT`.
+The Explorer.exe process will then unhook from the RIT, as only one thread can be connected to the RIT at a time.
+- When a key is pressed, the relevant element will appear in the **SHIQ**; this leads to the `RIT becoming active`, transforming the hardware input event into a message from the Keyboard which will then be placed in the `MS Word VIQ` thread.
+
+
+### Processing of messages by a specific window
+
+**Question**: How does a thread digest messages from the Keyboard which have entered the thread message queue?
+
+<u>Standard Messaging Processing Cycle</u>:
+
+```cpp
+while(GetMessage(&msg,0,0,0)) {
+	TranslateMessage(&msg);
+	DispatchMessage(&msg);
+}
+```
+
+	Breakdown:
+	"GetMessage()": Keyboard events are extracted from the thread's message queue. Notice that it is in a while loop. If nothing is available, it waits for the message.
+	- "DispatchMessage()" : Used to redirect messages from the message queue to the window procedure, which processes messages for the window where input is currently focused. It sends the messages to the window with the 'input focus' attribute enforced by the ALT+TAB keys or wherever the mouse was most recently clicked.
+
+
+**What is `input focus`?**
+- an attribute that can be assigned to a window that assures that any input from the Keyboard going to the thread's message queue will then go to the window's appropriate function with the `input focus` attribute.
+
+**Note**: The **`input focus`** can be passed from one window to another using something like the `ALT+TAB`.
+
+```bash
+- "TranslateMessage()" : creates the 'symbolic' messages based on the original keyboard messages since 'symbolic' messages are something the computer can display, and original keyboard messages are physical signals that still have to be interpreted. This translates virtual-key messages into character messages.
+
+	Symbolic Messages: has equivalent ASCII value.
+	- WM_CHAR : 
+	- WM_SYSCHAR : 
+	- WM_DEADCHAR : used for keys that don't produce a character independently but modify the character created by the following key press. (e.g. SHIFT)
+	- WM_SYSDEADCHAR : used for keys that don't produce a character independently but modify the character created by the following key press. (e.g. SHIFT)
+
+	Original Keyboard Messages:
+	- WM_KEYDOWN : translated to WM_CHAR or WM_DEADCHAR
+	- WM_KEYUP : usually not translated as they represent key release events
+	- WM_SYSKEYDOWN : translated to WM_SYSCHAR or WM_SYSDEADCHAR
+	- WM_SYSKEYUP : usually not translated as they represent key release events
+
+- These symbolic messages are placed in the 'App Message Queue'.
+- It should be noted that the 'Original Keyboard Messages' have NOT been deleted from the thread message queue.
+```
+
+**Questions**:
+- What's the difference between `symbolic messages` and `original keyboard messages`?
+```cpp
+"Symbolic messages" and "Original keyboard messages": The original keyboard messages (e.g., WM_KEYDOWN, WM_KEYUP) correspond to low-level keyboard input events. These messages tell you that a key was pressed or released, but they do not necessarily tell you what character that key press corresponds to. The symbolic messages (e.g., WM_CHAR, WM_DEADCHAR), on the other hand, represent actual characters that result from the key presses. The TranslateMessage function creates these symbolic messages based on the original keyboard messages.
+```
+
+- What's the difference between the `App Message Queue` and `Thread Message Queue`?
+```cpp
+"App Message Queue" and "Thread Message Queue": The Application Message Queue refers to the queue that stores messages for 'ALL' threads of a specific application. The Thread Message Queue, on the other hand, stores messages in a particular thread within an application. Each thread has its message queue.
+```
+
+
+<u>Text Diagram</u>:
+```mathematica
+1. Keyboard Event Occurs (e.g., Key Press)
+   |
+   |---[Message enters Thread's Message Queue]
+   |
+2. GetMessage Function Call
+   |
+   |---[Extracts Keyboard Event from Queue]
+   |
+3. TranslateMessage Function Call
+   |
+   |---[Translates Virtual-Key Messages into Character Messages]
+   |    WM_KEYDOWN -> WM_CHAR or WM_DEADCHAR
+   |    WM_SYSKEYDOWN -> WM_SYSCHAR or WM_SYSDEADCHAR
+   |
+4. DispatchMessage Function Call
+   |
+   |---[Dispatches Message to Window Procedure]
+   |
+5. Window Procedure Processes Message
+   |
+   |---[If Window Has Input Focus, Processes Keyboard Messages]
+   |
+6. Possible TranslateMessage Effect
+   |
+   |---[Creates Symbolic Messages and Places Them in the Application Message Queue]
+   |    Original Keyboard Messages Still Present in Queue
+```
+
+
+
+---------
+
+## Keyboard Key Status Array
+
+- One of the aims when developing the `Windows Hardware Input Model` was to ensure **resilience**.
+
+**Resilience** is ensured by the independent input processing by `threads`, preventing conflicts between threads.
+
+- However, this is not enough to isolate threads from each other, and the system supports an additional concept : **local input status**.
+
+		- "Local Input Status" : prevent conflicts between threads by having their independent input condition.
+
+		- Question: Why would we need to separate the thread here? Are we avoiding race conditions? Why are we avoiding race conditions?
+		Ans: Basically, yes. There might be a race condition in which multiple threads try to process the same keyboard input simultaneously, and we want to prevent that from happening (optimization).
+
+- Each thread has its own **`input condition`**, and information about this is stored in **THREADINFO**.
+
+		"Input Condition" is the state of a thread based on how ready it is to receive and process input. In this case, input is coming from the Keyboard, which may or may not be free to receive a keyboard event signal.
+
+- The information includes data about the `Virtual Queue Thread`, and a group of variables.
+
+		- "Virtual Queue Thread" : the thread that maintains the Virtual Input Queue - a queue where keyboard events are transformed into messages.
+
+- This last contains management information about the **input thread status**.
+
+		- "Input Thread Status" : status of a thread about the context in which it receives data. This 'context' includes
+					- which window is the focus of the Keyboard
+					- window that is currently active
+					- the keys being pressed
+					- status of the input cursor
+
+- The following notifications are supported for the Keyboard: 
+
+		- Which window is currently in the focus of the Keyboard,
+		- Which window is currently active,
+		- Which keys are pressed,
+		- Status of the input cursor
+
+<u>Summary</u>:
+```
+This paragraph basically tells us that each key pressed from the Keyboard sends the signal from its controller to the computer, transformed into messages. The computer will have different threads to handle every message, and these threads are compartmentalized from each other, so each key pressed (essentially) gets dealt with by each thread.
+```
+
+- Information about which keys are being pressed is saved to the ***Synchronous Status Array of Keys***.
+
+- This array is connected to the variables for each thread's `Local Input Status`.
+
+		Okay, so each thread has its own 'locker.' I guess that they can place the keyboard-pressed signal received from the Keyboard's controller converted into a Message(WM_*).
+
+All threads share the array of `Asynchronous Key Status`, which contains similar information.
+
+		- Question: What is the difference between the "Synchronous Status Array of Keys" and "Asynchronous Key Status"?
+		- Is the former not a shared resource for all threads but the latter is?
+		- Claim: The `Synchronous Status of Array of keys` is the private copy of each key status whether a key is pressed or not, and it gets shared at the `Asynchronous Key Status` at some point and having two of these arrays prevent race conditions.
+
+The **arrays of Asynchronous Key status** reflect the status of all keys at a given moment (but NOT the most recent), and the `GetAsyncKeyState` function allows one to determine whether or not a specific key is being pressed at a given time.
+
+- **GetAsyncKeyState** always returns `0` (i.e. not pressed) if it is ***`called by a different thread`*** (i.e. not the thread which created the window which is currently the focus of input status. `[I guess that's a different thread we have to exclude]`).
+
+		This shows the compartmentalization of each thread to prevent race conditions and misinformation. If a thread can check another thread's key state, it will give it a different result, and the thread gets confused, giving us wrong feedback that will lead to either the output of a key we didn't press or the output of a key that we did press.
+
+- The `GetKeyState` function differs from `GetAsyncKeyState` in that it returns the status of the Keyboard at the moment when the ***most recent keyboard message*** is extracted from the ***thread queue***. This function can be called at any time, regardless of which window is currently in focus.
+
+		I guess this somehow proves that the "Synchronous Status Array of Keys" is the private copy of the arrays that have the signal pressed by the user, and the "Asynchronous Key Status" is also an array but the shared resource for each thread working on checking the key state they are assigned to.
+
+
+## Keyboard Hooks
+
+##### Important stuff:
+- `Filter Functions` : receives notifications about events. This is the callback function for the hooked function.
+- `"Setting a Hook"` : binding **one or more** filter functions to a hook.
+
+<u>API Used to set and remove hook</u>:
+- `SetWindowsHookEx`
+- `UnhookWindowsHookEx`
+
+**Note**: Hooks can either be set ACROSS THE SYSTEM (`what do you mean?`) as a whole or for a specific thread.
+
+**Question**: Since several filter/callback functions can be bound to a single hook, is there a way to prevent conflicts between them when an event triggers these filter functions?
+- Ans: 
+- `(1)` There is something called a **Function Queue** in which all the filter functions bound to a hook are lined up. The queue uses `Last-In-First-Out`.
+- Sequence:
+
+```
+Order of execution     |          Function name
+      1st:                 func <most_recently_bound>
+      2nd:                           func3
+      3rd:                           func2
+      4th:                           func1
+```
+
+- `(2)` **Hook Chain** : list of pointers to filter functions. How does this work?
+- Ans: Say an event triggers the hook to some API; each `message(WM_*)` going to this API is then consecutively sent to each of the filter functions in the chain.
+- Possible actions expected for each filter function:
+
+		- Keeping track of the appearance of an event (e.g. Process Creation)
+		- Modifying message parameters or initiating message processing (e.g. Data Tampering)
+
+- **Note:** Since the first filter function in the hook chain receives the message parameter first, it can prevent the rest of the filter function in the hook chain from executing before it can finish (I think?)
+
+![](/assets/img/Pasted image 20230517063811.png)
+
+- Note that the first filter function calls the following function in the chain.
+
+		- Useful API for this:
+		- "CallNextHookEx"
+
+
+<u>Types of Hooks useful to keylogging</u>:
+
+- **Reference** : `https://learn.microsoft.com/en-us/windows/win32/winmsg/about-hooks`
+
+		- This is your most reliable source.
+
+```
+WH_* == Windows Hooks?
+- WH_KEYBOARD : Hooking keyboard events when they are added to the Thread Event Queue.
+- WH_KEYBOARD_LL : ^
+Difference between WH_KEYBOARD and WH_KEYBOARD_LL : https://stackoverflow.com/questions/10718009/difference-between-wh-keyboard-and-wh-keyboard-ll
+
+- WH_JOURNALRECORD : Writing and producing keyboard and mouse events
+- WH_JOURNALPLAYBACK : ^
+- WH_CBT : Intercepting multiple events, including remote keyboard events from the System Hardware Input Queue (SHIQ)
+- WH_GETMESSAGE : Intercepting an event from the Thread Event Queue.
+```
+
+**WH_KEYBOARD Example Code**:
+```cpp
+LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Process keyboard input here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
+```
+
+
+
+**WH_KEYBOARD_LL Example Code**:
+```cpp
+LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Process keyboard input here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, NULL, 0);
+```
+
+
+
+**WH_JOURNALRECORD Example Code**:
+```cpp
+LRESULT CALLBACK JournalRecordProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Record journal here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_JOURNALRECORD, JournalRecordProc, NULL, 0);
+```
+
+
+
+**WH_JOURNALPLAYBACK Example Code**:
+```cpp
+LRESULT CALLBACK JournalPlaybackProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Playback journal here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_JOURNALPLAYBACK, JournalPlaybackProc, NULL, 0);
+```
+
+
+
+**WH_CBT Example Code**:
+```cpp
+LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Process CBT here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
+```
+
+
+
+**WH_GETMESSAGE Example Code**:
+```cpp
+LRESULT CALLBACK GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode < 0) {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    // Process messages here
+
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+HHOOK hHook = SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
+```
+
+
+##### Definitions based on ChatGPT:
+`1.`  **WH_KEYBOARD**: This hook is installed by calling the SetWindowsHookEx function with the `WH_KEYBOARD` hook type. It monitors keystroke messages. An application-defined KeyboardProc hook procedure can examine, modify, or discard the message.
+
+`2.`  **WH_KEYBOARD_LL**: The `WH_KEYBOARD_LL` hook enables you to monitor low-level keyboard input events. It differs from `WH_KEYBOARD` in that `WH_KEYBOARD_LL` receives input events before any processing, such as translation into character messages.
+
+`3.`  **WH_JOURNALRECORD**: The `WH_JOURNALRECORD` hook enables you to record input events. The system calls the JournalRecordProc function each time there is a message in the thread's input queue that the hook is installed.
+
+`4.`  **WH_JOURNALPLAYBACK**: The `WH_JOURNALPLAYBACK` hook lets you play back a series of input events recorded by the `WH_JOURNALRECORD` hook. The system calls the JournalPlaybackProc function each time there is a message in the thread's input queue that the hook is installed.
+
+`5.`  **WH_CBT**: The `WH_CBT` hook enables you to monitor messages that are about to be processed by the system and applications. CBT stands for Computer-Based Training. It is a powerful hook that can monitor various system messages and events, including window creation, activation, sizing, moving, destruction, and more. It's usually used in computer-based training applications, hence the name.
+
+`6.`  **WH_GETMESSAGE**: The `WH_GETMESSAGE` hook enables you to monitor messages about to be returned by the ***`GetMessage`*** or ***`PeekMessage`*** function. It helps track the message queue, such as in debugging scenarios.
+
+<u>Remember</u>:
+- For these hooks to work, the application must run with the same or higher privileges as the target process. Also, please remember to unhook the hooks using `UnhookWindowsHookEx` when they are no longer needed.
+
+
+# Summary
+
+- **Reference**: ***`Copy-pasted`*** from `https://securelist.com/keyloggers-implementing-keyloggers-in-windows-part-two/36358/`
+
+Let’s sum up all the information above on the procedure of keyboard input in a single algorithm: the algorithm of the passing of a signal from a key being pressed by the user to the appearance of symbols on the screen can be presented as follows:
+
+`1.`  When starting, the operating system creates a raw input thread and a system hardware input queue in the `csrss.exe` process.
+
+`2.`  The raw input thread cyclically sends read requests to the keyboard driver, which remains waiting until an event from the Keyboard appears.
+
+`3.`  When the user presses or releases a key on the Keyboard, the keyboard microcontroller detects that a key has been pressed or released and sends both the scan code of the pressed/ released key to the central computer and an interrupt request.
+
+`4.`  The keyboard system controller gets the scan code, processes it, makes it accessible on the input/output port 60h, and generates a central processor hardware interrupt.
+
+`5.`  The interrupt controller signals the CPU to call the interrupt processing procedure for **IRQ1 – ISR**, which is registered in the system by the functional keyboard driver i8042prt.sys.
+
+`6.`  The **ISR** reads the data which has appeared from the internal keyboard controller queue, transforms the scan codes to virtual key codes (independent values which are determined by the system) and queues “**I8042KeyboardlsrDPC**”, a delayed procedure call.
+
+`7.`  As soon as possible, the system calls the DPC, which executes the callback procedure KeyboardClassServiceCallback registered by the Kbdclass keyboard driver.
+
+`8.`  The KeyboardClassServiceCallback procedure extracts a pending termination request from the raw input thread from its queue and returns it with information about the key pressed.
+
+`9.`  The raw input thread saves the information to the system hardware input queue and uses it to create the basic Windows keyboard messages WM_KEYDOWN, WM_KEYUP, which are placed at the end of the VIQ virtual input queue of the active thread.
+
+`10.`  The message processing cycle thread deletes the message from the queue and sends the corresponding window procedure for processing. When this happens, the system function TranslateMessage may be called, which uses basic keyboard messages to create the additional “symbol” messages `WM_CHAR`, `WM_SYSCHAR`, `WM_DEADCHAR` and `WM_SYSDEADCHAR`.
+
+
+
+
+
+
+----------------------------------
+
 # Related Works (Literature Review)
 
 - Sektor7 - `(Setup)`
