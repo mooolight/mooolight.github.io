@@ -126,50 +126,50 @@ The 16-byte buffer allows the Keyboard to "remember" a sequence of key press and
 
 # Status Register
 
-```c
+
 - The status register is an 8-bit read-only register at I/O address **port 64h**. (`Note that this Status Register is found at 64h`)
 - It has information about the **state** of the keyboard controller (8042) and interface.
 - It may be ready at any time.
-```
+
 
 ### Status Register Bit Definition
-```c
-`Bit 0`: Output Buffer Full - For sending data from controller to motherboard's.
+
+
+- `Bit 0`: Output Buffer Full - For sending data from controller to motherboard's.
 	- `0` : keyboard controller's output buffer(16 byte storage one) has no data.
 	- `1` : indicates that the controller has placed data into its output buffer but the system has NOT yet read the data.
 	- When the system reads the output buffer (I/O address **port 60h**), this bit will return to a `0`.
 
-`Bit 1`: Input Buffer Full - For writing data into buffer from user's pressed key(s).
+- `Bit 1`: Input Buffer Full - For writing data into buffer from user's pressed key(s).
 	- `0` : the keyboard controller's input buffer (I/O address **port 60h or 64h**) is empty.
 	- `1` : indicates that the data has been written into the buffer (such as user pressing a key) but the controller has ***not read*** the data yet.
 			- `Is the microcontroller in here the one located at the Motherboard or still the one in keyboard? Ans: On the Keyboard!`
 	- When the controller reads the input buffer, this bit will return to `0`.
 
 
-`Bit 2`: System Flag - This bit may be set to 0 or 1 by writing the system's flag bit in the keyboard controller's command byte.
-								- It is set to `0` after a power on reset.
+- `Bit 2`: System Flag - This bit may be set to 0 or 1 by writing the system's flag bit in the keyboard controller's command byte.
+          - It is set to `0` after a power on reset.
 
 
-`Bit 3`: Command/Data - The keyboard controller's input buffer may be addressed as either I/O address **port 60h or port 64h**.
+- `Bit 3`: Command/Data - The keyboard controller's input buffer may be addressed as either I/O address **port 60h or port 64h**.
 			- **60h** : Data port. Writing to this port sets this bit to `0`.
 			- **64h** : Command port. Writing to this port sets this bit to `1`.
 		- The controller uses this bit to determine if the byte in its input buffer should be interpreted as a `command byte` or a `data byte`.
 
 
-`Bit 4`: Inhibit Switch - This bit is updated whenever data is placed in the keyboard controller's output buffer. 
+- `Bit 4`: Inhibit Switch - This bit is updated whenever data is placed in the keyboard controller's output buffer. 
 									- Basically, its value is `0` if the user keeps typing?
 
+- `Bit 5`: Transmit Time-Out : `1` indicates that a transmission started by the keyboard controller was not properly completed.
 
-`Bit 5`: Transmit Time-Out : `1` indicates that a transmission started by the keyboard controller was not properly completed.
+- `Bit 6,7` - not as important I think. (at least not at the moment)
 
-`Bit 6,7` - not as important I think. (at least not at the moment)
-```
 
 ### Commands (I/O Address **port 64h**)
-```c
-`20` - Read Keyboard Controller's Command byte - the controller sends its current **command byte** to its output buffer.
-`60` - Write Keyboard Controller's Command byte - the next byte of data written to I/O address **port 60** is placed in the controller's command byte.
-```
+
+- `20` - Read Keyboard Controller's Command byte - the controller sends its current **command byte** to its output buffer.
+- `60` - Write Keyboard Controller's Command byte - the next byte of data written to I/O address **port 60** is placed in the controller's command byte.
+
 
 ---------------------
 
