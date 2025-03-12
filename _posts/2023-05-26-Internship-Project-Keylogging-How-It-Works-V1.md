@@ -126,18 +126,18 @@ The 16-byte buffer allows the Keyboard to "remember" a sequence of key press and
 
 # Status Register
 
+```c
 - The status register is an 8-bit read-only register at I/O address **port 64h**. (`Note that this Status Register is found at 64h`)
 - It has information about the **state** of the keyboard controller (8042) and interface.
 - It may be ready at any time.
-
+```
 
 ### Status Register Bit Definition
-
+```c
 `Bit 0`: Output Buffer Full - For sending data from controller to motherboard's.
 	- `0` : keyboard controller's output buffer(16 byte storage one) has no data.
 	- `1` : indicates that the controller has placed data into its output buffer but the system has NOT yet read the data.
 	- When the system reads the output buffer (I/O address **port 60h**), this bit will return to a `0`.
-
 
 `Bit 1`: Input Buffer Full - For writing data into buffer from user's pressed key(s).
 	- `0` : the keyboard controller's input buffer (I/O address **port 60h or 64h**) is empty.
@@ -163,13 +163,13 @@ The 16-byte buffer allows the Keyboard to "remember" a sequence of key press and
 `Bit 5`: Transmit Time-Out : `1` indicates that a transmission started by the keyboard controller was not properly completed.
 
 `Bit 6,7` - not as important I think. (at least not at the moment)
-
+```
 
 ### Commands (I/O Address **port 64h**)
-
+```c
 `20` - Read Keyboard Controller's Command byte - the controller sends its current **command byte** to its output buffer.
 `60` - Write Keyboard Controller's Command byte - the next byte of data written to I/O address **port 60** is placed in the controller's command byte.
-
+```
 
 ---------------------
 
