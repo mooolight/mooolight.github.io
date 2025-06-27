@@ -354,6 +354,7 @@ Arguments:
 
 
 - Call to `VirtualProtectEx`:
+
 ```c
 auto prot_result = VirtualProtectEx(GetCurrentProcess(), pic, pic_size, PAGE_EXECUTE_READ, &old_protection);
 
